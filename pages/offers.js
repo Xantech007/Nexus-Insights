@@ -84,7 +84,7 @@ export default function Offers() {
   return (
     <div className='flex flex-col items-center gap-4 justify-center w-full h-full pt-10 pb-20 bg-slate-50 font-montserrat'>
     <Head>
-      <title>Offers | Crypto-Gen</title>
+      <title>Offers | Nexus Insights</title>
       <link rel="icon" href="/logo.png" />
     </Head>
       <h1 className="text-2xl md:text-4xl">View our offers...</h1>

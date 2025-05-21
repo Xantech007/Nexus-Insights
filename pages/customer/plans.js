@@ -87,7 +87,7 @@ export default function Plans({currentPlan}) {
   return (
     <div className="min-h-screen bg-gray-100 pb-10 md:pb-20">
       <Head>
-        <title>My Plans | Crypto-Gen</title>
+        <title>My Plans | Nexus Insights</title>
         <link rel="icon" href="/logo.png" />
       </Head>
 

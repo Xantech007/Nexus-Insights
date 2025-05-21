@@ -22,7 +22,7 @@ export default function Withdrawals(withdrawals) {
   return (
     <div className="min-h-screen bg-gray-100">
       <Head>
-        <title>My Withdrawals | Crypto-Gen</title>
+        <title>My Withdrawals | Nexus Insights</title>
         <link rel="icon" href="/logo.png" />
       </Head>
 

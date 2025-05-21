@@ -97,7 +97,7 @@ const Faq = () => {
   return (
     <div className="bg-gray-100 pb-8 md:pb-20">
       <Head>
-        <title>FAQ | Crypto-Gen</title>
+        <title>FAQ | Nexus Insights</title>
         <link rel="icon" href="/logo.png" />
       </Head>
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

@@ -72,11 +72,11 @@ export default function Footer() {
         </div>
 
         <div className="text-sm font-thin hidden md:flex md:flex-col gap-4">
-            <p>Welcome to Crypto-Gen, a team of diverse investment bankers who deal with cryptocurrency. We provide you with a safe means of diversifying your portfolio and earning passive income whilst doing so. We have been existing as a licensed LLC for over 3 years
+            <p>Welcome to Nexus Insights, a team of diverse investment bankers who deal with cryptocurrency. We provide you with a safe means of diversifying your portfolio and earning passive income whilst doing so. We have been existing as a licensed LLC for over 3 years
             serving over 600 customers, active and past, so be sure your investment is secure with us and sure to yield returns.
             </p>
             <p>Warm Regards,</p>
-            <p>The Crypto-Gen Team</p>
+            <p>The Nexus Insights Team</p>
         </div>
 
         <div className="flex items-center text-xs justify-center">
