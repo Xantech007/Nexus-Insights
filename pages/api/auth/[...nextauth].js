@@ -21,41 +21,43 @@ export default NextAuth({
         const { email, password } = credentials;
 
         try {
-          // Step 1: Sign in with Firebase Auth
+          // Step 1: Sign in using Firebase Auth
           const userCredential = await signInWithEmailAndPassword(auth, email, password);
           const uid = userCredential.user.uid;
+          const userEmail = userCredential.user.email;
 
-          // Step 2: Fetch Firestore user profile
+          // Step 2: Get user data from Firestore
           const userRef = collection(db, "users");
           const q = query(userRef, where("id", "==", uid));
           const querySnapshot = await getDocs(q);
 
           if (querySnapshot.empty) {
+            console.error("Firestore: No user document found for UID:", uid);
             throw new Error("No user profile found in Firestore.");
           }
 
           const userData = querySnapshot.docs[0].data();
 
-          // Step 3: Return simplified user object
+          // Step 3: Return safe user object
           return {
             id: uid,
-            email: userCredential.user.email,
+            email: userEmail,
             role: userData.role,
             name: `${userData.firstName} ${userData.lastName}`,
             profilePhoto: userData.profilePhoto || "",
-            firstName: userData.firstName,
-            lastName: userData.lastName,
+            firstName: userData.firstName || "",
+            lastName: userData.lastName || "",
           };
         } catch (error) {
           console.error("Authorize error:", error.message);
-          throw new Error("Invalid credentials or user profile not found.");
+          return null; // Returning null triggers the "Couldn't log you in" error
         }
       },
     }),
 
     GoogleProvider({
-      clientId: process.env.GOOGLE_ID,
-      clientSecret: process.env.GOOGLE_SECRET,
+      clientId: process.env.GOOGLE_ID || "",
+      clientSecret: process.env.GOOGLE_SECRET || "",
     }),
   ],
 
