@@ -120,6 +120,11 @@ include '../account/connect.php';
 <?php include 'includes/scripts.php'; ?>
 <script>
 $(document).ready(function(){
+  // Destroy any existing DataTable instance before initializing
+  if ($.fn.DataTable.isDataTable('#example1')) {
+    $('#example1').DataTable().destroy();
+  }
+
   $('#example1').DataTable({
     "order": [[4, "desc"]], // Sort by Last Visit Time
     "columnDefs": [
