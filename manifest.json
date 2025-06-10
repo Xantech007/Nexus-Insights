@@ -1,8 +1,8 @@
 {
-  "name": "Nexus Insights",
-  "short_name": "Nexus",
-  "description": "Nexus Insights - Actionable insights for your business",
-  "start_url": "/index.php?utm_source=pwa",
+  "name": "Nexus Insights Admin",
+  "short_name": "Nexus Admin",
+  "description": "Admin panel for Nexus Insights",
+  "start_url": "/admin/?utm_source=pwa",
   "display": "browser",
   "theme_color": "#007bff",
   "background_color": "#ffffff",
