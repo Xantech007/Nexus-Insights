@@ -14,9 +14,7 @@ include '../account/connect.php'; // MySQLi connection
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-      <h1>
-        Tracking Logs
-      </h1>
+      <h1>Tracking Logs</h1>
       <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
         <li class="active">Tracking Logs</li>
@@ -54,28 +52,34 @@ include '../account/connect.php'; // MySQLi connection
               <h3 class="box-title">User's Tracking Logs</h3>
             </div>
             <div class="box-body">
-              <p><i class="fa fa-eye"></i> Click on the user's IP Address to view the tracking details</p>
+              <p><i class="fa fa-eye"></i> Click on the Visitor ID to view tracking details</p>
               <div class="table-responsive">
                 <table id="example1" class="table table-bordered">
                   <thead>
-                    <th>IP Address</th>
+                    <th>Visitor ID</th>
+                    <th>Latest IP Address</th>
                     <th>Location</th>
+                    <th>User Agent</th>
+                    <th>Last Visit</th>
+                    <th>Visit Count</th>
+                    <th>User ID</th>
                     <th>Actions</th>
                   </thead>
                   <tbody>
                     <?php
                       try {
-                        // Select the most recent log for each IP address
+                        // Select the most recent log for each visitor_id with visit count
                         $stmt = $conne->prepare("
-                          SELECT v.id, v.ip_address, v.location
+                          SELECT v.id, v.visitor_id, v.ip_address, v.location, v.user_agent, v.visit_time, v.user_id,
+                                 (SELECT COUNT(*) FROM visitor_logs v2 WHERE v2.visitor_id = v.visitor_id) as visit_count
                           FROM visitor_logs v
                           INNER JOIN (
-                            SELECT ip_address, MAX(visit_time) as max_visit_time
+                            SELECT visitor_id, MAX(visit_time) as max_visit_time
                             FROM visitor_logs
-                            GROUP BY ip_address
+                            GROUP BY visitor_id
                           ) latest
-                          ON v.ip_address = latest.ip_address AND v.visit_time = latest.max_visit_time
-                          ORDER BY v.ip_address
+                          ON v.visitor_id = latest.visitor_id AND v.visit_time = latest.max_visit_time
+                          ORDER BY v.visit_time DESC
                         ");
                         $stmt->execute();
                         $result = $stmt->get_result();
@@ -83,19 +87,24 @@ include '../account/connect.php'; // MySQLi connection
                         if ($result->num_rows > 0) {
                           while ($row = $result->fetch_assoc()) { ?>
                             <tr>
-                              <td><a href="ip_logs.php?ip=<?php echo urlencode($row['ip_address']); ?>" title="View details for IP <?php echo htmlspecialchars($row['ip_address']); ?>"><?php echo htmlspecialchars($row['ip_address']); ?></a></td>
+                              <td><a href="visitor_logs.php?visitor_id=<?php echo urlencode($row['visitor_id']); ?>" title="View details for Visitor ID <?php echo htmlspecialchars($row['visitor_id']); ?>"><?php echo htmlspecialchars(substr($row['visitor_id'], 0, 8)); ?>...</a></td>
+                              <td><?php echo htmlspecialchars($row['ip_address']); ?></td>
                               <td><?php echo htmlspecialchars($row['location']); ?></td>
+                              <td><?php echo htmlspecialchars(substr($row['user_agent'], 0, 50)); ?>...</td>
+                              <td><?php echo date('M d, Y H:i', strtotime($row['visit_time'])); ?></td>
+                              <td><?php echo $row['visit_count']; ?></td>
+                              <td><?php echo $row['user_id'] ? htmlspecialchars($row['user_id']) : 'Guest'; ?></td>
                               <td>
-                                <button class="btn btn-danger btn-sm delete btn-flat" data-id="<?php echo $row['id']; ?>" data-ip="<?php echo htmlspecialchars($row['ip_address']); ?>"><i class="fa fa-trash"></i> Delete</button>
+                                <button class="btn btn-danger btn-sm delete btn-flat" data-id="<?php echo $row['id']; ?>" data-visitor-id="<?php echo htmlspecialchars($row['visitor_id']); ?>"><i class="fa fa-trash"></i> Delete</button>
                               </td>
                             </tr>
                           <?php }
                         } else {
-                          echo "<tr><td colspan='3'>No visitor logs found.</td></tr>";
+                          echo "<tr><td colspan='8'>No visitor logs found.</td></tr>";
                         }
                         $stmt->close();
                       } catch (Exception $e) {
-                        echo "<tr><td colspan='3'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
+                        echo "<tr><td colspan='8'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
                       }
                     ?>
                   </tbody>
@@ -106,25 +115,34 @@ include '../account/connect.php'; // MySQLi connection
         </div>
       </div>
     </section>
-     
   </div>
   <?php include 'includes/footer.php'; ?>
   <?php include 'includes/visitor_logs_modal.php'; ?>
-
 </div>
 <!-- ./wrapper -->
 
 <?php include 'includes/scripts.php'; ?>
 <script>
-$(function(){
+$(document).ready(function(){
+  // Initialize DataTable with sorting and filtering
+  $('#example1').DataTable({
+    "order": [[4, "desc"]], // Default sort by Last Visit Time
+    "columnDefs": [
+      { "orderable": true, "targets": [0, 4, 5, 6] }, // Sortable columns: Visitor ID, Last Visit, Visit Count, User ID
+      { "orderable": false, "targets": [1, 2, 3, 7] } // Non-sortable: IP Address, Location, User Agent, Actions
+    ],
+    "pageLength": 25
+  });
+
   // Delete button click
   $(document).on('click', '.delete', function(e){
     e.preventDefault();
     var id = $(this).data('id');
-    var ip = $(this).data('ip');
+    var visitor_id = $(this).data('visitor-id');
     $('#delete').modal('show');
     $('.did').val(id);
-    $('.name').text(ip); // Display IP in modal
+    $('.visitor-id').val(visitor_id);
+    $('.name').text(visitor_id.substr(0, 8) + '...');
   });
 });
 </script>
@@ -135,7 +153,7 @@ $(function(){
 }
 
 .table-responsive table {
-  min-width: 600px;
+  min-width: 900px;
 }
 
 .box-body p {
