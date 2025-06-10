@@ -35,7 +35,3 @@ php_value error_reporting 32767
     BrowserMatch ^Mozilla/4\.0[678] no-gzip
     BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
 </IfModule>
-
-<Files "manifest.json">
-  AddType application/manifest+json .json
-</Files>
