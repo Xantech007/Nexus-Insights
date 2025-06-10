@@ -1,24 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Insights Admin</title>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
-</head>
-<body>
-<!-- In admin/includes/header.php or footer.php -->
-<script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js', { scope: '/admin/' })
-            .then(() => console.log('Service Worker Registered'))
-            .catch((error) => console.error('Service Worker Error:', error));
-    }
-</script>
-<!DOCTYPE html>
 <html>
 <head>
   	<meta charset="utf-8">
