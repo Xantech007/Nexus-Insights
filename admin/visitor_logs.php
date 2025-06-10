@@ -1,115 +1,123 @@
 <?php
 include 'includes/session.php';
-include '../account/connect.php'; // MySQLi connection
+include '../account/connect.php';
+
+$visitor_id = isset($_GET['visitor_id']) ? $_GET['visitor_id'] : '';
+
+if (!$visitor_id) {
+    $_SESSION['error'] = "No Visitor ID provided.";
+    header('Location: tracking_logs.php');
+    exit();
+}
+
+// Query for visitor logs
+$stmt_logs = $conne->prepare("
+    SELECT id, visitor_id, page_name, visit_time, location, ip_address, user_id, user_agent
+    FROM visitor_logs
+    WHERE visitor_id = ?
+    ORDER BY visit_time DESC
+");
+$stmt_logs->bind_param("s", $visitor_id);
+$stmt_logs->execute();
+$result_logs = $stmt_logs->get_result();
+$stmt_logs->close();
 ?>
 
 <?php include 'includes/header.php'; ?>
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
-
   <?php include 'includes/navbar.php'; ?>
   <?php include 'includes/menubar.php'; ?>
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
     <section class="content-header">
-      <h1>Tracking Logs</h1>
+      <h1>Visitor Logs for Visitor ID: <?php echo htmlspecialchars(substr($visitor_id, 0, 8)); ?>...</h1>
       <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class="active">Tracking Logs</li>
+        <li><a href="tracking_logs.php">Tracking Logs</a></li>
+        <li class="active">Visitor Details</li>
       </ol>
     </section>
-
-    <!-- Main content -->
     <section class="content">
-      <?php
-        if (isset($_SESSION['error'])) {
-          echo "
-            <div class='alert alert-danger alert-dismissible'>
-              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>
-              <h4><i class='icon fa fa-warning'></i> Error!</h4>
-              ".$_SESSION['error']."
-            </div>
-          ";
-          unset($_SESSION['error']);
-        }
-        if (isset($_SESSION['success'])) {
-          echo "
-            <div class='alert alert-success alert-dismissible'>
-              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>
-              <h4><i class='icon fa fa-check'></i> Success!</h4>
-              ".$_SESSION['success']."
-            </div>
-          ";
-          unset($_SESSION['success']);
-        }
-      ?>
       <div class="row">
-        <div class="col-xs-12">
-          <div class="box">
-            <div class="box-header with-border">
-              <h3 class="box-title">User's Tracking Logs</h3>
-            </div>
-            <div class="box-body">
-              <p><i class="fa fa-eye"></i> Click on the Visitor ID to view tracking details</p>
-              <div class="table-responsive">
-                <table id="example1" class="table table-bordered">
-                  <thead>
-                    <th>Visitor ID</th>
-                    <th>Latest IP Address</th>
-                    <th>Location</th>
-                    <th>User Agent</th>
-                    <th>Last Visit</th>
-                    <th>Visit Count</th>
-                    <th>User ID</th>
-                    <th>Actions</th>
-                  </thead>
-                  <tbody>
-                    <?php
-                      try {
-                        // Select the most recent log for each visitor_id with visit count
-                        $stmt = $conne->prepare("
-                          SELECT v.id, v.visitor_id, v.ip_address, v.location, v.user_agent, v.visit_time, v.user_id,
-                                 (SELECT COUNT(*) FROM visitor_logs v2 WHERE v2.visitor_id = v.visitor_id) as visit_count
-                          FROM visitor_logs v
-                          INNER JOIN (
-                            SELECT visitor_id, MAX(visit_time) as max_visit_time
-                            FROM visitor_logs
-                            GROUP BY visitor_id
-                          ) latest
-                          ON v.visitor_id = latest.visitor_id AND v.visit_time = latest.max_visit_time
-                          ORDER BY v.visit_time DESC
-                        ");
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-
-                        if ($result->num_rows > 0) {
-                          while ($row = $result->fetch_assoc()) { ?>
-                            <tr>
-                              <td><a href="tracking_logs.php?visitor_id=<?php echo urlencode($row['visitor_id']); ?>" title="View details for Visitor ID <?php echo htmlspecialchars($row['visitor_id']); ?>"><?php echo htmlspecialchars(substr($row['visitor_id'], 0, 8)); ?>...</a></td>
-                              <td><?php echo htmlspecialchars($row['ip_address']); ?></td>
-                              <td><?php echo htmlspecialchars($row['location']); ?></td>
-                              <td><?php echo htmlspecialchars(substr($row['user_agent'], 0, 50)); ?>...</td>
-                              <td><?php echo date('M d, Y H:i', strtotime($row['visit_time'])); ?></td>
-                              <td><?php echo $row['visit_count']; ?></td>
-                              <td><?php echo $row['user_id'] ? htmlspecialchars($row['user_id']) : 'Guest'; ?></td>
-                              <td>
-                                <button class="btn btn-danger btn-sm delete btn-flat" data-id="<?php echo $row['id']; ?>" data-visitor-id="<?php echo htmlspecialchars($row['visitor_id']); ?>"><i class="fa fa-trash"></i> Delete</button>
-                              </td>
-                            </tr>
-                          <?php }
-                        } else {
-                          echo "<tr><td colspan='8'>No visitor logs found.</td></tr>";
-                        }
-                        $stmt->close();
-                      } catch (Exception $e) {
-                        echo "<tr><td colspan='8'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
-                      }
-                    ?>
-                  </tbody>
-                </table>
+        <?php
+          if (isset($_SESSION['error'])) {
+            echo "
+              <div class='alert alert-danger alert-dismissible'>
+                <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>
+                <h4><i class='icon fa fa-warning'></i> Error!</h4>
+                ".$_SESSION['error']."
               </div>
+            ";
+            unset($_SESSION['error']);
+          }
+          if (isset($_SESSION['success'])) {
+            echo "
+              <div class='alert alert-success alert-dismissible'>
+                <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>
+                <h4><i class='icon fa fa-check'></i> Success!</h4>
+                ".$_SESSION['success']."
+              </div>
+            ";
+            unset($_SESSION['success']);
+          }
+        ?>
+        <div class="col-md-12">
+          <div class="box">
+            <div class="box-body">
+              <?php if ($result_logs->num_rows > 0) { ?>
+                <div class="table-responsive">
+                  <table id="visitorDetails" class="table table-bordered">
+                    <thead>
+                      <th>Log ID</th>
+                      <th>Visitor ID</th>
+                      <th>IP Address</th>
+                      <th>Page Name</th>
+                      <th>Visit Time (UTC)</th>
+                      <th>Location</th>
+                      <th>User Agent</th>
+                      <th>User ID</th>
+                    </thead>
+                    <tbody>
+                      <?php while ($row = $result_logs->fetch_assoc()) { ?>
+                        <tr>
+                          <td><?php echo htmlspecialchars($row['id']); ?></td>
+                          <td><?php echo htmlspecialchars(substr($row['visitor_id'], 0, 8)); ?>...</td>
+                          <td><?php echo htmlspecialchars($row['ip_address']); ?></td>
+                          <td><?php echo htmlspecialchars($row['page_name']); ?></td>
+                          <td>
+                            <?php
+                              try {
+                                $time = new DateTime($row['visit_time'], new DateTimeZone('Europe/Paris'));
+                                $time->setTimezone(new DateTimeZone('UTC'));
+                                echo htmlspecialchars($time->format("d/m/Y, g:i A") . ' UTC');
+                              } catch (Exception $e) {
+                                echo 'Invalid date';
+                              }
+                            ?>
+                          </td>
+                          <td><?php echo htmlspecialchars($row['location']); ?></td>
+                          <td><?php echo htmlspecialchars(substr($row['user_agent'] ?? 'N/A', 0, 50)); ?>...</td>
+                          <td>
+                            <?php if ($row['user_id']) { ?>
+                              <a href="view.php?i_id=<?php echo urlencode($row['user_id']); ?>">
+                                <?php echo htmlspecialchars($row['user_id']); ?>
+                              </a>
+                            <?php } else { ?>
+                              Guest
+                            <?php } ?>
+                          </td>
+                        </tr>
+                      <?php } ?>
+                    </tbody>
+                  </table>
+                </div>
+              <?php } else { ?>
+                <section class="content-header">
+                  <h1>No logs found for Visitor ID: <?php echo htmlspecialchars(substr($visitor_id, 0, 8)); ?>...</h1>
+                </section>
+              <?php } ?>
             </div>
           </div>
         </div>
@@ -117,32 +125,17 @@ include '../account/connect.php'; // MySQLi connection
     </section>
   </div>
   <?php include 'includes/footer.php'; ?>
-  <?php include 'includes/visitor_logs_modal.php'; ?>
 </div>
-<!-- ./wrapper -->
-
 <?php include 'includes/scripts.php'; ?>
 <script>
 $(document).ready(function(){
-  // Initialize DataTable with sorting and filtering
-  $('#example1').DataTable({
-    "order": [[4, "desc"]], // Default sort by Last Visit Time
+  $('#visitorDetails').DataTable({
+    "order": [[4, "desc"]], // Sort by Visit Time
+    "pageLength": 25,
     "columnDefs": [
-      { "orderable": true, "targets": [0, 4, 5, 6] }, // Sortable columns: Visitor ID, Last Visit, Visit Count, User ID
-      { "orderable": false, "targets": [1, 2, 3, 7] } // Non-sortable: IP Address, Location, User Agent, Actions
-    ],
-    "pageLength": 25
-  });
-
-  // Delete button click
-  $(document).on('click', '.delete', function(e){
-    e.preventDefault();
-    var id = $(this).data('id');
-    var visitor_id = $(this).data('visitor-id');
-    $('#delete').modal('show');
-    $('.did').val(id);
-    $('.visitor-id').val(visitor_id);
-    $('.name').text(visitor_id.substr(0, 8) + '...');
+      { "orderable": true, "targets": [0, 2, 3, 4, 7] }, // Sortable: Log ID, IP Address, Page Name, Visit Time, User ID
+      { "orderable": false, "targets": [1, 5, 6] } // Non-sortable: Visitor ID, Location, User Agent
+    ]
   });
 });
 </script>
@@ -151,14 +144,8 @@ $(document).ready(function(){
   overflow-x: auto;
   width: 100%;
 }
-
 .table-responsive table {
-  min-width: 900px;
-}
-
-.box-body p {
-  font-weight: bold;
-  margin-bottom: 15px;
+  min-width: 1000px;
 }
 </style>
 </body>
