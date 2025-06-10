@@ -66,6 +66,7 @@ include '../account/connect.php';
                   <tbody>
                     <?php
                       try {
+                        // Query to get the latest entry for each visitor_id
                         $stmt = $conne->prepare("
                           SELECT v.id, v.visitor_id, v.ip_address, v.location, v.user_agent, v.visit_time, v.user_id,
                                  (SELECT COUNT(*) FROM visitor_logs v2 WHERE v2.visitor_id = v.visitor_id) as visit_count
@@ -76,6 +77,7 @@ include '../account/connect.php';
                             GROUP BY visitor_id
                           ) latest
                           ON v.visitor_id = latest.visitor_id AND v.visit_time = latest.max_visit_time
+                          GROUP BY v.visitor_id -- Ensure unique visitor_id
                           ORDER BY v.visit_time DESC
                         ");
                         $stmt->execute();
