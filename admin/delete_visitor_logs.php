@@ -1,4 +1,5 @@
 <?php
+// delete_visitor_logs.php
 session_start();
 include '../account/connect.php';
 
