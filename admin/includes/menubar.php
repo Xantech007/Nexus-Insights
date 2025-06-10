@@ -18,7 +18,7 @@
       <li><a href="home.php"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
       <li><a href="deposits.php"><i class="fa fa-bitcoin"></i> <span>Deposit Request</span></a></li>
       <li><a href="withdrawals.php"><i class="fa fa-money"></i> <span>Withdrawal Request</span></a></li>
-      <li><a href="visitor_logs.php"><i class="fa fa-file-text"></i> <span>Tracking Logs</span></a></li> <!-- New entry -->
+      <li><a href="tracking_logs.php"><i class="fa fa-file-text"></i> <span>Tracking Logs</span></a></li> <!-- New entry -->
 
       <li class="header">MANAGE</li>
       <li><a href="users.php"><i class="fa fa-users"></i> <span>Users</span></a></li>
