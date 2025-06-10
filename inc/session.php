@@ -16,11 +16,23 @@ try {
     $page_name = basename($_SERVER['PHP_SELF']); // Current page name (e.g., index.php)
     $visit_time = date('Y-m-d H:i:s');
     $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown IP';
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown UA';
+
+    // Generate or retrieve visitor_id
+    if (!isset($_COOKIE['visitor_id'])) {
+        $visitor_id = bin2hex(random_bytes(16)); // Generate a 32-character unique ID
+        setcookie('visitor_id', $visitor_id, time() + (365 * 24 * 60 * 60), "/", "", true, true); // 1-year cookie, Secure, HttpOnly
+    } else {
+        $visitor_id = $_COOKIE['visitor_id'];
+    }
 
     // Get approximate location using ip-api.com
+    $location = 'Location not available';
     $context = stream_context_create(['http' => ['timeout' => 5]]);
     $geolocation = @json_decode(file_get_contents("http://ip-api.com/json/{$ip_address}", false, $context));
-    $location = $geolocation ? "{$geolocation->city}, {$geolocation->region}, {$geolocation->country}" : 'Location not available';
+    if ($geolocation && $geolocation->status === 'success') {
+        $location = "{$geolocation->city}, {$geolocation->regionName}, {$geolocation->country}";
+    }
 
     // Get user ID if logged in
     $user_id = isset($_SESSION['user']) ? $_SESSION['user'] : null;
@@ -29,15 +41,15 @@ try {
     $conn = $pdo->open();
 
     // Prepare and execute INSERT query
-    $stmt = $conn->prepare("INSERT INTO visitor_logs (page_name, visit_time, location, ip_address, user_id) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$page_name, $visit_time, $location, $ip_address, $user_id]);
+    $stmt = $conn->prepare("INSERT INTO visitor_logs (visitor_id, page_name, visit_time, location, ip_address, user_id, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$visitor_id, $page_name, $visit_time, $location, $ip_address, $user_id, $user_agent]);
 
     // Close connection
     $pdo->close();
 
     // Optional: Log success (remove in production if not needed)
-    error_log("Visitor data logged successfully for page: $page_name", 3, "visitor.log");
-} catch (PDOException $e) {
+    error_log("Visitor data logged successfully for page: $page_name, visitor_id: $visitor_id", 3, "visitor.log");
+} catch (Exception $e) {
     error_log("Error logging visitor: " . $e->getMessage(), 3, "errors.log");
     // Continue execution even if logging fails
 }
