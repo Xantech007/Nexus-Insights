@@ -87,7 +87,7 @@ include '../account/connect.php'; // MySQLi connection
                         if ($result->num_rows > 0) {
                           while ($row = $result->fetch_assoc()) { ?>
                             <tr>
-                              <td><a href="ip_logs.php?visitor_id=<?php echo urlencode($row['visitor_id']); ?>" title="View details for Visitor ID <?php echo htmlspecialchars($row['visitor_id']); ?>"><?php echo htmlspecialchars(substr($row['visitor_id'], 0, 8)); ?>...</a></td>
+                              <td><a href="tracking_logs.php?visitor_id=<?php echo urlencode($row['visitor_id']); ?>" title="View details for Visitor ID <?php echo htmlspecialchars($row['visitor_id']); ?>"><?php echo htmlspecialchars(substr($row['visitor_id'], 0, 8)); ?>...</a></td>
                               <td><?php echo htmlspecialchars($row['ip_address']); ?></td>
                               <td><?php echo htmlspecialchars($row['location']); ?></td>
                               <td><?php echo htmlspecialchars(substr($row['user_agent'], 0, 50)); ?>...</td>
