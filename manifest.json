@@ -1,0 +1,26 @@
+{
+  "name": "Nexus Insights",
+  "short_name": "Nexus",
+  "description": "Nexus Insights - Actionable insights for your business",
+  "start_url": "/index.php?utm_source=pwa",
+  "display": "browser",
+  "theme_color": "#007bff",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/assets/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/images/favicon.png",
+      "sizes": "133x133",
+      "type": "image/png"
+    }
+  ]
+}
