@@ -1,6 +1,26 @@
 <?php
 include 'includes/session.php';
 include '../account/connect.php';
+
+// Function to parse browser from user agent
+function getBrowser($userAgent) {
+    $browsers = [
+        'Edge' => 'Edg\/([0-9.]+)',
+        'Chrome' => 'Chrome\/([0-9.]+)',
+        'Firefox' => 'Firefox\/([0-9.]+)',
+        'Safari' => 'Safari\/([0-9.]+)',
+        'Opera' => 'Opera\/([0-9.]+)',
+        'MSIE' => 'MSIE ([0-9.]+)',
+        'Trident' => 'rv:([0-9.]+)' // For IE 11
+    ];
+
+    foreach ($browsers as $browser => $pattern) {
+        if (preg_match("/$pattern/", $userAgent, $match)) {
+            return "$browser " . $match[1];
+        }
+    }
+    return 'Unknown';
+}
 ?>
 
 <?php include 'includes/header.php'; ?>
@@ -57,6 +77,7 @@ include '../account/connect.php';
                     <th>Visitor ID</th>
                     <th>Latest IP Address</th>
                     <th>Location</th>
+                    <th>Browser</th>
                     <th>User Agent</th>
                     <th>Last Visit</th>
                     <th>Visit Count</th>
@@ -89,6 +110,7 @@ include '../account/connect.php';
                               <td><a href="visitor_logs.php?visitor_id=<?php echo urlencode($row['visitor_id']); ?>" title="View details for Visitor ID <?php echo htmlspecialchars($row['visitor_id']); ?>"><?php echo htmlspecialchars(substr($row['visitor_id'], 0, 8)); ?>...</a></td>
                               <td><?php echo htmlspecialchars($row['ip_address']); ?></td>
                               <td><?php echo htmlspecialchars($row['location']); ?></td>
+                              <td><?php echo htmlspecialchars(getBrowser($row['user_agent'])); ?></td>
                               <td><?php echo htmlspecialchars(substr($row['user_agent'] ?? 'N/A', 0, 50)); ?>...</td>
                               <td><?php echo date('M d, Y H:i', strtotime($row['visit_time'])); ?></td>
                               <td><?php echo $row['visit_count']; ?></td>
@@ -99,11 +121,11 @@ include '../account/connect.php';
                             </tr>
                           <?php }
                         } else {
-                          echo "<tr><td colspan='8'>No visitor logs found.</td></tr>";
+                          echo "<tr><td colspan='9'>No visitor logs found.</td></tr>";
                         }
                         $stmt->close();
                       } catch (Exception $e) {
-                        echo "<tr><td colspan='8'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
+                        echo "<tr><td colspan='9'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
                       }
                     ?>
                   </tbody>
@@ -128,10 +150,10 @@ $(document).ready(function(){
   }
 
   $('#example1').DataTable({
-    "order": [[4, "desc"]], // Sort by Last Visit Time
+    "order": [[5, "desc"]], // Sort by Last Visit Time
     "columnDefs": [
-      { "orderable": true, "targets": [0, 1, 4, 5, 6] }, // Sortable: Visitor ID, IP Address, Last Visit, Visit Count, User ID
-      { "orderable": false, "targets": [2, 3, 7] } // Non-sortable: Location, User Agent, Actions
+      { "orderable": true, "targets": [0, 1, 3, 5, 6, 7] }, // Sortable: Visitor ID, IP Address, Browser, Last Visit, Visit Count, User ID
+      { "orderable": false, "targets": [2, 4, 8] } // Non-sortable: Location, User Agent, Actions
     ],
     "pageLength": 25
   });
