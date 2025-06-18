@@ -97,7 +97,7 @@
               </div>
               <div class="col-md-4 col-sm-6 mb-30">
                 <div class="contact-item">
-                  <i class="fab fa-envelope"></i>
+                  <i class="fa fa-envelope"></i>
                   <h5 class="mt-2">Mail Us</h5>
                   <div class="mt-4">
                     <p><?= $settings->email2; ?><br/>
@@ -107,7 +107,7 @@
               </div>
               <div class="col-md-4 col-sm-6 mb-30">
                 <div class="contact-item">
-                  <i class="fab fa-map-marker-alt"></i>
+                  <i class="fa fa-map-marker-alt"></i>
                   <h5 class="mt-2">Visit Us</h5>
                   <div class="mt-4">
                     <p><?= $settings->address; ?></p>
