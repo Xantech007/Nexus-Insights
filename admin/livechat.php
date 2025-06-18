@@ -7,16 +7,12 @@ error_reporting(E_ALL);
 // Include session and dependencies
 include('includes/session.php');
 include('includes/format.php');
-include('../inc/config.php');
+include('inc/config.php');
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin'])) {
     $_SESSION['error'] = 'Please log in to access the admin panel';
-    if (file_exists($base_dir . '../login.php')) {
-        header('location: ../login.php');
-    } else {
-        die('Login page not found: ../login.php');
-    }
+    header('location: ../login.php');
     exit;
 }
 
@@ -82,19 +78,8 @@ $pdo->close();
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
 
-  <?php
-      include 'includes/navbar.php';
-  }
-  ?>
-  
-  <?php 
-  if (!file_exists($base_dir . 'includes/menubar.php')) {
-      echo '<div class="alert alert-warning">Menubar file not found: includes/menubar.php</div>';
-      echo '<aside class="main-sidebar"><ul class="sidebar-menu"><li><a href="#">Dashboard</a></li><li class="active"><a href="#">Live Chat</a></li></ul></aside>';
-  } else {
-      include 'includes/menubar.php';
-  }
-  ?>
+  <?php include 'includes/navbar.php'; ?>
+  <?php include 'includes/menubar.php'; ?>
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
@@ -135,18 +120,18 @@ $pdo->close();
         <div class="col-xs-12">
           <div class="box">
             <div class="box-header with-border">
-              <h3 class="box-title">Chat Management</h3>
+              <h3 class="box-title">Live Chat</h3>
             </div>
             <div class="box-body">
               <div class="row">
                 <!-- User List -->
-                <div class="col-md-4">
+                <div class="col-md-6">
                   <h5>Users with Chats</h5>
                   <ul class="list-group">
                     <?php if (!empty($chatUsers)) : ?>
                       <?php foreach ($chatUsers as $user) : ?>
                         <li class="list-group-item">
-                          <a href="livechat.php?user_id=<?php echo $user->id; ?>" class="<?php echo $selected_user_id == $user->id ? 'text-primary' : ''; ?>">
+                          <a href="livechat.php?id=<?php echo $user->id; ?>" class="<?php echo $selected_user_id == $user_id ? 'active' : ''; ?>">
                             <?php echo htmlspecialchars($user->full_name); ?> (<?php echo htmlspecialchars($user->email); ?>)
                           </a>
                         </li>
@@ -157,10 +142,10 @@ $pdo->close();
                   </ul>
                 </div>
                 <!-- Chat Area -->
-                <div class="col-md-8">
+                <div class="col-md-6">
                   <?php if ($selected_user_id > 0) : ?>
                     <h5>Chat with <?php
-                      $selected_user_name = 'Unknown User';
+                      $selected_user_name = '';
                       foreach ($chatUsers as $user) {
                         if ($user->id == $selected_user_id) {
                           $selected_user_name = $user->full_name;
@@ -169,34 +154,34 @@ $pdo->close();
                       }
                       echo htmlspecialchars($selected_user_name);
                     ?></h5>
-                    <div class="chat-box" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+                    <div class="chat-box" style="max-height: 400px; overflow-y: auto;">
                       <?php if (!empty($chatMessages)) : ?>
                         <?php foreach ($chatMessages as $msg) : ?>
-                          <div class="chat-message mb-3 <?php echo $msg->sender === 'admin' ? 'text-right' : 'text-left'; ?>">
-                            <div class="card p-2 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-light' : 'bg-primary text-white'; ?>">
+                          <div class="chat-message mb-1 <?php echo $msg->sender == 'admin' ? 'text-right' : 'text-left'; ?>">
+                            <div class="card p-2 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-light' : 'bg-primary text-dark'; ?>">
                               <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
-                              <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender === 'admin' ? 'You' : 'User'; ?></small>
+                              <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender == 'admin' ? 'You' : 'User'; ?></small>
                             </div>
                           </div>
                         <?php endforeach; ?>
                       <?php else : ?>
-                        <p>No messages yet. Start the conversation below!</p>
+                        <p>No messages yet.</p>
                       <?php endif; ?>
                     </div>
                     <!-- Message Input Form -->
                     <form method="POST" action="">
-                      <input type="hidden" name="user_id" value="<?php echo $selected_user_id; ?>">
+                      <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($selected_user_id); ?>">
                       <div class="form-group mt-3">
                         <div class="input-group">
-                          <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required></textarea>
+                          <textarea name="message" class="form-control" rows="2" placeholder="Type your message..." required></textarea>
                           <span class="input-group-btn">
-                            <button type="submit" class="btn btn-primary btn-flat"><i class="fa fa-send"></i> Send</button>
+                            <input type="submit" class="btn btn-primary btn-flat" name="submit" value="Send">
                           </span>
                         </div>
                       </div>
                     </form>
                   <?php else : ?>
-                    <p>Select a user to view their chat.</p>
+                    <p>Select a user to view their messages.</p>
                   <?php endif; ?>
                 </div>
               </div>
@@ -207,28 +192,11 @@ $pdo->close();
     </section>
   </div>
 
-  <?php 
-  if (!file_exists($base_dir . 'includes/footer.php')) {
-      echo '<div class="alert alert-warning">Footer file not found: includes/footer.php</div>';
-      echo '<footer class="main-footer"><div class="pull-right hidden-xs"><b>Version</b> 1.0</div><strong>Copyright &copy; ' . date('Y') . '</strong></footer>';
-  } else {
-      include 'includes/footer.php';
-  }
-  ?>
+  <?php include 'includes/footer.php'; ?>
 </div>
 <!-- ./wrapper -->
 
-<?php 
-if (!file_exists($base_dir . 'includes/scripts.php')) {
-    echo '<div class="alert alert-warning">Scripts file not found: includes/scripts.php</div>';
-    echo '
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
-    ';
-} else {
-    include 'includes/scripts.php';
-}
-?>
+<?php include 'includes/scripts.php'; ?>
 <style>
 .chat-box {
   max-height: 400px;
@@ -236,12 +204,11 @@ if (!file_exists($base_dir . 'includes/scripts.php')) {
   border: 1px solid #ddd;
   padding: 10px;
 }
-.text-right .card {
+.text-right .card-body {
   background-color: #f8f9fa;
 }
-.text-left .card {
-  background-color: #007bff;
-  color: white;
+.text-left .card-body {
+  background-color: #e3e3e3;
 }
 </style>
 </body>
