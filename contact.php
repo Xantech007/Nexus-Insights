@@ -97,17 +97,19 @@
               </div>
               <div class="col-md-4 col-sm-6 mb-30">
                 <div class="contact-item">
-                  <i class="fa fa-envelope"></i>
+                  <i class="fa-light fa-envelope"></i>
                   <h5 class="mt-2">Mail Us</h5>
                   <div class="mt-4">
-                    <p><?= $settings->email2; ?><br/>
+                    <p><?= $settings->email; ?><br/>
+                       <?= $settings->email2; ?><br/> 
+                       <?= $settings->email3; ?><br/>
                     </p>
                   </div>
                 </div><!-- contact-item end -->
               </div>
               <div class="col-md-4 col-sm-6 mb-30">
                 <div class="contact-item">
-                  <i class="fa fa-map-marker-alt"></i>
+                  <i class="fal fa-map-marker-alt"></i>
                   <h5 class="mt-2">Visit Us</h5>
                   <div class="mt-4">
                     <p><?= $settings->address; ?></p>
