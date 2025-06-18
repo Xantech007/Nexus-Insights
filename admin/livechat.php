@@ -124,7 +124,7 @@ include('includes/scripts.php');
             <div class="box-header with-border">
               <h3 class="box-title">Live Chat</h3>
             </div>
-            <div class="box-body">
+            <div class="box-body" style="padding: 20px;">
               <div class="row">
                 <!-- User List -->
                 <div class="col-md-4">
@@ -156,29 +156,27 @@ include('includes/scripts.php');
                       }
                       echo htmlspecialchars($selected_user_name);
                     ?></h5>
-                    <div class="chat-box" style="max-height: 500px; overflow-y: auto; padding: 20px;">
+                    <div class="chat-box" style="max-height: 400px; overflow-y: auto;">
                       <?php if (!empty($chatMessages)) : ?>
                         <?php foreach ($chatMessages as $msg) : ?>
                           <div class="chat-message mb-3 <?php echo $msg->sender == 'admin' ? 'text-right' : 'text-left'; ?>">
-                            <div class="message-bubble p-3 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-light' : 'bg-light-blue'; ?>">
+                            <div class="card p-2 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-admin' : 'bg-user'; ?>">
                               <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
                               <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender == 'admin' ? 'You' : 'User'; ?></small>
                             </div>
                           </div>
                         <?php endforeach; ?>
                       <?php else : ?>
-                        <p>No messages yet.</p>
+                        <p>No messages yet. Start a conversation below!</p>
                       <?php endif; ?>
                     </div>
                     <!-- Message Input Form -->
                     <form method="POST" action="">
                       <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($selected_user_id); ?>">
-                      <div class="form-group mt-4">
-                        <div class="input-group">
-                          <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required style="resize: none;"></textarea>
-                          <span class="input-group-btn">
-                            <input type="submit" class="btn btn-primary btn-flat" name="submit" value="Send">
-                          </span>
+                      <div class="input-group mt-3">
+                        <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required></textarea>
+                        <div class="input-group-append">
+                          <button type="submit" class="btn btn-primary">Send</button>
                         </div>
                       </div>
                     </form>
@@ -199,35 +197,24 @@ include('includes/scripts.php');
 
 <style>
 .chat-box {
-  max-height: 500px;
+  max-height: 400px;
   overflow-y: auto;
-  padding: 20px;
 }
-.message-bubble {
-  border-radius: 15px;
-  max-width: 70%;
+.bg-admin {
+  background-color: #f8f9fa;
 }
-.bg-light-blue {
-  background-color: #e6f0fa;
-}
-.text-right .message-bubble {
-  background-color: #f0f0f0;
-}
-.text-left .message-bubble {
-  background-color: #e6f0fa;
+.bg-user {
+  background-color: #e3e3e3;
 }
 .list-group-item {
   margin-bottom: 5px;
   border-radius: 5px;
 }
-.form-group {
-  margin-bottom: 20px;
-}
 .input-group textarea {
-  padding: 15px;
+  padding: 10px;
 }
-.input-group-btn .btn {
-  padding: 15px 20px;
+.input-group-append .btn {
+  padding: 10px 20px;
 }
 </style>
 </body>
