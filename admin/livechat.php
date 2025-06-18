@@ -1,19 +1,26 @@
 <?php
-include('../inc/config.php');
-include('includes/format.php');
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Include session and dependencies
 include('includes/session.php');
-
-$page_name = 'Admin Live Chat';
-$page_parent = '';
-$page_title = 'Admin Panel - ' . $settings->siteTitle;
-$page_description = 'Manage live chat conversations for ' . $settings->siteTitle;
-
-include('../inc/head.php');
+include('includes/format.php');
+$base_dir = __DIR__ . '/';
+if (!file_exists($base_dir . 'includes/config.php')) {
+    die('Configuration file not found: includes/config.php');
+}
+include($base_dir . 'includes/config.php');
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin'])) {
     $_SESSION['error'] = 'Please log in to access the admin panel';
-    header('location: ../login.php');
+    if (file_exists($base_dir . '../login.php')) {
+        header('location: ../login.php');
+    } else {
+        die('Login page not found: ../login.php');
+    }
     exit;
 }
 
@@ -46,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message']) && isset($
 }
 
 // Fetch all users with chats
+$chatUsers = [];
 try {
     $stmtUsers = $conn->query("SELECT DISTINCT u.id, u.full_name, u.email 
                                FROM users u 
@@ -55,7 +63,6 @@ try {
 } catch (PDOException $e) {
     $_SESSION['error'] = 'Database error occurred: ' . $e->getMessage();
     error_log("Database error in fetching users: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
-    $chatUsers = [];
 }
 
 // Fetch messages for selected user
@@ -75,133 +82,175 @@ if ($selected_user_id > 0) {
 $pdo->close();
 ?>
 
-<body class="dark-topbar">
-    <!-- Left Sidenav -->
-    <?php include('includes/menubar.php'); ?>
-    <!-- end left-sidenav-->
+<?php include 'includes/header.php'; ?>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
 
-    <div class="page-wrapper">
-        <!-- Top Bar Start -->
-        <?php include('includes/header.php'); ?>
-        <!-- Top Bar End -->
+  <?php 
+  if (!file_exists($base_dir . 'includes/navbar.php')) {
+      echo '<div class="alert alert-warning">Navbar file not found: includes/navbar.php</div>';
+      echo '<nav class="main-header navbar navbar-expand navbar-dark">Admin Panel</nav>';
+  } else {
+      include 'includes/navbar.php';
+  }
+  ?>
+  
+  <?php 
+  if (!file_exists($base_dir . 'includes/menubar.php')) {
+      echo '<div class="alert alert-warning">Menubar file not found: includes/menubar.php</div>';
+      echo '<aside class="main-sidebar"><ul class="sidebar-menu"><li><a href="#">Dashboard</a></li><li class="active"><a href="#">Live Chat</a></li></ul></aside>';
+  } else {
+      include 'includes/menubar.php';
+  }
+  ?>
 
-        <!-- Page Content-->
-        <div class="page-content">
-            <div class="container-fluid">
-                <!-- Page-Title -->
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="page-title-box">
-                            <div class="row">
-                                <div class="col">
-                                    <h4 class="page-title">Admin Live Chat</h4>
-                                </div>
-                                <div class="col-auto align-self-center">
-                                    <a href="#" class="btn btn-sm btn-outline-primary" id="Dash_Date">
-                                        <span class="day-name" id="Day_Name">Today:</span> 
-                                        <span class="" id="Select_date"><?php echo date('M d'); ?></span>
-                                        <i data-feather="calendar" class="align-self-center icon-xs ml-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>Live Chat</h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Live Chat</li>
+      </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <?php
+        if (isset($_SESSION['error'])) {
+          echo "
+            <div class='alert alert-danger alert-dismissible'>
+              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>
+              <h4><i class='icon fa fa-warning'></i> Error!</h4>
+              " . htmlspecialchars($_SESSION['error']) . "
+            </div>
+          ";
+          unset($_SESSION['error']);
+        }
+        if (isset($_SESSION['success'])) {
+          echo "
+            <div class='alert alert-success alert-dismissible'>
+              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>
+              <h4><i class='icon fa fa-check'></i> Success!</h4>
+              " . htmlspecialchars($_SESSION['success']) . "
+            </div>
+          ";
+          unset($_SESSION['success']);
+        }
+      ?>
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="box">
+            <div class="box-header with-border">
+              <h3 class="box-title">Chat Management</h3>
+            </div>
+            <div class="box-body">
+              <div class="row">
+                <!-- User List -->
+                <div class="col-md-4">
+                  <h5>Users with Chats</h5>
+                  <ul class="list-group">
+                    <?php if (!empty($chatUsers)) : ?>
+                      <?php foreach ($chatUsers as $user) : ?>
+                        <li class="list-group-item">
+                          <a href="livechat.php?user_id=<?php echo $user->id; ?>" class="<?php echo $selected_user_id == $user->id ? 'text-primary' : ''; ?>">
+                            <?php echo htmlspecialchars($user->full_name); ?> (<?php echo htmlspecialchars($user->email); ?>)
+                          </a>
+                        </li>
+                      <?php endforeach; ?>
+                    <?php else : ?>
+                      <p>No active chats found.</p>
+                    <?php endif; ?>
+                  </ul>
                 </div>
-                <!-- end page title -->
-
-                <!-- Display Success/Error Messages -->
-                <?php
-                if (isset($_SESSION['error'])) {
-                    echo "
-                        <div class='alert alert-danger border-0' role='alert'>
-                            <i class='la la-skull-crossbones alert-icon text-danger align-self-center font-30 mr-3'></i>
-                            <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                                <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
-                            </button>
-                            <strong>Oh snap!</strong> " . $_SESSION['error'] . "
-                        </div>";
-                    unset($_SESSION['error']);
-                }
-                if (isset($_SESSION['success'])) {
-                    echo "
-                        <div class='alert alert-success border-0' role='alert'>
-                            <i class='mdi mdi-check-all alert-icon'></i>
-                            <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                                <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
-                            </button>
-                            <strong>Well done!</strong> " . $_SESSION['success'] . "
-                        </div>";
-                    unset($_SESSION['success']);
-                }
-                ?>
-
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <!-- User List -->
-                                    <div class="col-md-4">
-                                        <h5>Users with Chats</h5>
-                                        <ul class="list-group">
-                                            <?php if (!empty($chatUsers)) : ?>
-                                                <?php foreach ($chatUsers as $user) : ?>
-                                                    <li class="list-group-item">
-                                                        <a href="livechat.php?user_id=<?php echo $user->id; ?>" class="<?php echo $selected_user_id == $user->id ? 'text-primary' : ''; ?>">
-                                                            <?php echo htmlspecialchars($user->full_name); ?> (<?php echo htmlspecialchars($user->email); ?>)
-                                                        </a>
-                                                    </li>
-                                                <?php endforeach; ?>
-                                            <?php else : ?>
-                                                <p>No active chats found.</p>
-                                            <?php endif; ?>
-                                        </ul>
-                                    </div>
-                                    <!-- Chat Area -->
-                                    <div class="col-md-8">
-                                        <?php if ($selected_user_id > 0) : ?>
-                                            <h5>Chat with <?php echo htmlspecialchars($chatUsers[array_search($selected_user_id, array_column($chatUsers, 'id'))]->full_name); ?></h5>
-                                            <div class="chat-box" style="max-height: 400px; overflow-y: auto;">
-                                                <?php if (!empty($chatMessages)) : ?>
-                                                    <?php foreach ($chatMessages as $msg) : ?>
-                                                        <div class="chat-message mb-3 <?php echo $msg->sender === 'admin' ? 'text-right' : 'text-left'; ?>">
-                                                            <div class="card p-2 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-light' : 'bg-primary text-white'; ?>">
-                                                                <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
-                                                                <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender === 'admin' ? 'You' : 'User'; ?></small>
-                                                            </div>
-                                                        </div>
-                                                    <?php endforeach; ?>
-                                                <?php else : ?>
-                                                    <p>No messages yet. Start the conversation below!</p>
-                                                <?php endif; ?>
-                                            </div>
-                                            <!-- Message Input Form -->
-                                            <form method="POST" action="">
-                                                <input type="hidden" name="user_id" value="<?php echo $selected_user_id; ?>">
-                                                <div class="input-group mt-3">
-                                                    <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required></textarea>
-                                                    <div class="input-group-append">
-                                                        <button type="submit" class="btn btn-primary">Send</button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        <?php else : ?>
-                                            <p>Select a user to view their chat.</p>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div><!--end card-body-->
-                        </div><!--end card-->
-                    </div><!--end col-->
-                </div><!--end row-->
-            </div><!-- container -->
-
-            <?php include('includes/footer.php'); ?><!--end footer-->
+                <!-- Chat Area -->
+                <div class="col-md-8">
+                  <?php if ($selected_user_id > 0) : ?>
+                    <h5>Chat with <?php
+                      $selected_user_name = 'Unknown User';
+                      foreach ($chatUsers as $user) {
+                        if ($user->id == $selected_user_id) {
+                          $selected_user_name = $user->full_name;
+                          break;
+                        }
+                      }
+                      echo htmlspecialchars($selected_user_name);
+                    ?></h5>
+                    <div class="chat-box" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+                      <?php if (!empty($chatMessages)) : ?>
+                        <?php foreach ($chatMessages as $msg) : ?>
+                          <div class="chat-message mb-3 <?php echo $msg->sender === 'admin' ? 'text-right' : 'text-left'; ?>">
+                            <div class="card p-2 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-light' : 'bg-primary text-white'; ?>">
+                              <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
+                              <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender === 'admin' ? 'You' : 'User'; ?></small>
+                            </div>
+                          </div>
+                        <?php endforeach; ?>
+                      <?php else : ?>
+                        <p>No messages yet. Start the conversation below!</p>
+                      <?php endif; ?>
+                    </div>
+                    <!-- Message Input Form -->
+                    <form method="POST" action="">
+                      <input type="hidden" name="user_id" value="<?php echo $selected_user_id; ?>">
+                      <div class="form-group mt-3">
+                        <div class="input-group">
+                          <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required></textarea>
+                          <span class="input-group-btn">
+                            <button type="submit" class="btn btn-primary btn-flat"><i class="fa fa-send"></i> Send</button>
+                          </span>
+                        </div>
+                      </div>
+                    </form>
+                  <?php else : ?>
+                    <p>Select a user to view their chat.</p>
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <!-- end page content -->
-    </div>
-    <!-- end page-wrapper -->
+      </div>
+    </section>
+  </div>
 
-    <?php include('includes/scripts.php'); ?>
+  <?php 
+  if (!file_exists($base_dir . 'includes/footer.php')) {
+      echo '<div class="alert alert-warning">Footer file not found: includes/footer.php</div>';
+      echo '<footer class="main-footer"><div class="pull-right hidden-xs"><b>Version</b> 1.0</div><strong>Copyright &copy; ' . date('Y') . '</strong></footer>';
+  } else {
+      include 'includes/footer.php';
+  }
+  ?>
+</div>
+<!-- ./wrapper -->
+
+<?php 
+if (!file_exists($base_dir . 'includes/scripts.php')) {
+    echo '<div class="alert alert-warning">Scripts file not found: includes/scripts.php</div>';
+    echo '
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+    ';
+} else {
+    include 'includes/scripts.php';
+}
+?>
+<style>
+.chat-box {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+}
+.text-right .card {
+  background-color: #f8f9fa;
+}
+.text-left .card {
+  background-color: #007bff;
+  color: white;
+}
+</style>
 </body>
 </html>
