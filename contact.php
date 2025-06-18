@@ -100,9 +100,7 @@
                   <i class="fas fa-envelope"></i>
                   <h5 class="mt-2">Mail Us</h5>
                   <div class="mt-4">
-                    <p><?= $settings->email3; ?><br/>
-                       <?= $settings->email2; ?><br/> 
-                       <?= $settings->email3; ?><br/>
+                    <p><?= $settings->email2; ?><br/>
                     </p>
                   </div>
                 </div><!-- contact-item end -->
