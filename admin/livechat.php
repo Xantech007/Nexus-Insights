@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 // Include session and dependencies
 include('includes/session.php');
 include('includes/format.php');
-include('inc/config.php');
+include('../inc/config.php');
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin'])) {
