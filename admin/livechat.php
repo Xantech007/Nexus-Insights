@@ -72,14 +72,16 @@ if ($selected_user_id > 0) {
 }
 
 $pdo->close();
-?>
 
-<?php include 'includes/header.php'; ?>
+// Include template files
+include('includes/header.php');
+include('includes/navbar.php');
+include('includes/menubar.php');
+include('includes/footer.php');
+include('includes/scripts.php');
+?>
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
-
-  <?php include 'includes/navbar.php'; ?>
-  <?php include 'includes/menubar.php'; ?>
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
@@ -125,7 +127,7 @@ $pdo->close();
             <div class="box-body">
               <div class="row">
                 <!-- User List -->
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <h5>Users with Chats</h5>
                   <ul class="list-group">
                     <?php if (!empty($chatUsers)) : ?>
@@ -142,10 +144,10 @@ $pdo->close();
                   </ul>
                 </div>
                 <!-- Chat Area -->
-                <div class="col-md-6">
+                <div class="col-md-8">
                   <?php if ($selected_user_id > 0) : ?>
                     <h5>Chat with <?php
-                      $selected_user_name = '';
+                      $selected_user_name = 'Unknown User';
                       foreach ($chatUsers as $user) {
                         if ($user->id == $selected_user_id) {
                           $selected_user_name = $user->full_name;
@@ -154,11 +156,11 @@ $pdo->close();
                       }
                       echo htmlspecialchars($selected_user_name);
                     ?></h5>
-                    <div class="chat-box" style="max-height: 400px; overflow-y: auto;">
+                    <div class="chat-box" style="max-height: 500px; overflow-y: auto; padding: 20px;">
                       <?php if (!empty($chatMessages)) : ?>
                         <?php foreach ($chatMessages as $msg) : ?>
-                          <div class="chat-message mb-1 <?php echo $msg->sender == 'admin' ? 'text-right' : 'text-left'; ?>">
-                            <div class="card p-2 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-light' : 'bg-primary text-dark'; ?>">
+                          <div class="chat-message mb-3 <?php echo $msg->sender == 'admin' ? 'text-right' : 'text-left'; ?>">
+                            <div class="message-bubble p-3 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-light' : 'bg-light-blue'; ?>">
                               <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
                               <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender == 'admin' ? 'You' : 'User'; ?></small>
                             </div>
@@ -171,9 +173,9 @@ $pdo->close();
                     <!-- Message Input Form -->
                     <form method="POST" action="">
                       <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($selected_user_id); ?>">
-                      <div class="form-group mt-3">
+                      <div class="form-group mt-4">
                         <div class="input-group">
-                          <textarea name="message" class="form-control" rows="2" placeholder="Type your message..." required></textarea>
+                          <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required style="resize: none;"></textarea>
                           <span class="input-group-btn">
                             <input type="submit" class="btn btn-primary btn-flat" name="submit" value="Send">
                           </span>
@@ -192,23 +194,40 @@ $pdo->close();
     </section>
   </div>
 
-  <?php include 'includes/footer.php'; ?>
 </div>
 <!-- ./wrapper -->
 
-<?php include 'includes/scripts.php'; ?>
 <style>
 .chat-box {
-  max-height: 400px;
+  max-height: 500px;
   overflow-y: auto;
-  border: 1px solid #ddd;
-  padding: 10px;
+  padding: 20px;
 }
-.text-right .card-body {
-  background-color: #f8f9fa;
+.message-bubble {
+  border-radius: 15px;
+  max-width: 70%;
 }
-.text-left .card-body {
-  background-color: #e3e3e3;
+.bg-light-blue {
+  background-color: #e6f0fa;
+}
+.text-right .message-bubble {
+  background-color: #f0f0f0;
+}
+.text-left .message-bubble {
+  background-color: #e6f0fa;
+}
+.list-group-item {
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.input-group textarea {
+  padding: 15px;
+}
+.input-group-btn .btn {
+  padding: 15px 20px;
 }
 </style>
 </body>
