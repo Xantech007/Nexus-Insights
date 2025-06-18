@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'ebd414bd7136b6d89caf', // Pusher key
                 '6da1dd54bcbab2381c9b', // Pusher secret
                 '2010039', // Pusher app_id
-                ['eu' => 'your_cluster'] // Pusher cluster
+                ['cluster' => 'eu'] // Pusher cluster
             );
             $pusher->trigger('page-channel-' . $page_id, 'new-update', ['content' => $content]);
 
