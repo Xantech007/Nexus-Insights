@@ -1,14 +1,14 @@
 <?php
 include('../inc/config.php');
 include('includes/format.php');
-include('inc/session.php');
+include('includes/session.php');
 
 $page_name = 'Admin Live Chat';
 $page_parent = '';
 $page_title = 'Admin Panel - ' . $settings->siteTitle;
 $page_description = 'Manage live chat conversations for ' . $settings->siteTitle;
 
-include('../inc/head.php');
+include('includes/head.php');
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin'])) {
