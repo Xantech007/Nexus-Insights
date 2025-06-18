@@ -77,12 +77,12 @@ $pdo->close();
 
 <body class="dark-topbar">
     <!-- Left Sidenav -->
-    <?php include('../inc/sidebar.php'); ?>
+    <?php include('includes/menubar.php'); ?>
     <!-- end left-sidenav-->
 
     <div class="page-wrapper">
         <!-- Top Bar Start -->
-        <?php include('../inc/header.php'); ?>
+        <?php include('includes/header.php'); ?>
         <!-- Top Bar End -->
 
         <!-- Page Content-->
@@ -196,12 +196,12 @@ $pdo->close();
                 </div><!--end row-->
             </div><!-- container -->
 
-            <?php include('../inc/footer.php'); ?><!--end footer-->
+            <?php include('includes/footer.php'); ?><!--end footer-->
         </div>
         <!-- end page content -->
     </div>
     <!-- end page-wrapper -->
 
-    <?php include('../inc/scripts.php'); ?>
+    <?php include('includes/scripts.php'); ?>
 </body>
 </html>
