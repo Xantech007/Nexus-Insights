@@ -88,7 +88,7 @@
             <div class="row mb-none-30">
               <div class="col-md-4 col-sm-6 mb-30">
                 <div class="contact-item">
-                  <i class="fas fa-whatsapp"></i>
+                  <i class="fab fa-whatsapp"></i>
                   <h5 class="mt-2">WhatsApp Us</h5>
                   <div class="mt-4">
                     <p><?= $settings->phoneNumber; ?></p>
