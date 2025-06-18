@@ -13,7 +13,7 @@ $page_id = isset($page_id) ? htmlspecialchars($page_id, ENT_QUOTES, 'UTF-8') : '
 
     // Load initial content
     function loadInitialContent() {
-        fetch('scripts/get_initial_content.php?page_id=' + pageId)
+        fetch('get_initial_content.php?page_id=' + pageId)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
@@ -32,7 +32,7 @@ $page_id = isset($page_id) ? htmlspecialchars($page_id, ENT_QUOTES, 'UTF-8') : '
     loadInitialContent();
 
     // Subscribe to real-time updates
-    const pusher = new Pusher('your_app_key', { cluster: 'your_cluster' });
+    const pusher = new Pusher('ebd414bd7136b6d89caf', { cluster: 'eu' });
     const channel = pusher.subscribe('page-channel-' + pageId);
     channel.bind('new-update', function(data) {
         const container = document.getElementById('dynamic-content');
@@ -45,7 +45,7 @@ $page_id = isset($page_id) ? htmlspecialchars($page_id, ENT_QUOTES, 'UTF-8') : '
     function sendUpdate() {
         const content = document.getElementById('contentInput').value;
         if (content) {
-            fetch('scripts/send_update.php', {
+            fetch('send_update.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `page_id=${pageId}&content=${encodeURIComponent(content)}`
