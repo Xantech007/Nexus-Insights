@@ -34,11 +34,7 @@
 
             <li>
                 <a href="messages"><i data-feather="inbox" class="align-self-center menu-icon"></i><span>Inbox</span></a>
-            </li>
-
-            <li>
-                <a href="password-update"><i data-feather="lock" class="align-self-center menu-icon"></i><span>Change Password</span></a>
-            </li>       
+            </li>     
 
             <li>
                 <a href="../contact"><i data-feather="life-buoy" class="align-self-center menu-icon"></i><span>Contact Us</span></a>
