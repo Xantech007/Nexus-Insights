@@ -82,11 +82,7 @@ $pdo->close();
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
 
-  <?php 
-  if (!file_exists($base_dir . 'includes/navbar.php')) {
-      echo '<div class="alert alert-warning">Navbar file not found: includes/navbar.php</div>';
-      echo '<nav class="main-header navbar navbar-expand navbar-dark">Admin Panel</nav>';
-  } else {
+  <?php
       include 'includes/navbar.php';
   }
   ?>
