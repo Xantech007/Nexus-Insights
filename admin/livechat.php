@@ -8,7 +8,7 @@ $page_parent = '';
 $page_title = 'Admin Panel - ' . $settings->siteTitle;
 $page_description = 'Manage live chat conversations for ' . $settings->siteTitle;
 
-include('includes/head.php');
+include('../inc/head.php');
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin'])) {
