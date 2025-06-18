@@ -41,7 +41,7 @@
             </li>       
 
             <li>
-                <a href="../contact"><i data-feather="life-buoy" class="align-self-center menu-icon"></i><span>Contact Support</span></a>
+                <a href="../contact"><i data-feather="life-buoy" class="align-self-center menu-icon"></i><span>Contact Us</span></a>
             </li>
         </ul>
 
