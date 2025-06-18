@@ -12,8 +12,8 @@
   <link rel="icon" type="image/png" href="assets/images/favicon.png" sizes="16x16">
   <!-- bootstrap 4  -->
   <link rel="stylesheet" href="assets/css/vendor/bootstrap.min.css">
-  <!-- fontawesome 6  -->
-  <link rel="stylesheet" href="a<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+  <!-- fontawesome 5  -->
+  <link rel="stylesheet" href="assets/css/all.min.css">
   <!-- line-awesome webfont -->
   <link rel="stylesheet" href="assets/css/line-awesome.min.css">
   <link rel="stylesheet" href="assets/css/vendor/animate.min.css">
