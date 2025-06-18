@@ -131,7 +131,7 @@ $pdo->close();
                     <?php if (!empty($chatUsers)) : ?>
                       <?php foreach ($chatUsers as $user) : ?>
                         <li class="list-group-item">
-                          <a href="livechat.php?id=<?php echo $user->id; ?>" class="<?php echo $selected_user_id == $user_id ? 'active' : ''; ?>">
+                          <a href="livechat.php?user_id=<?php echo $user->id; ?>" class="<?php echo $selected_user_id == $user->id ? 'active' : ''; ?>">
                             <?php echo htmlspecialchars($user->full_name); ?> (<?php echo htmlspecialchars($user->email); ?>)
                           </a>
                         </li>
