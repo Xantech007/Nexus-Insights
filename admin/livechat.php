@@ -8,10 +8,10 @@ error_reporting(E_ALL);
 include('includes/session.php');
 include('includes/format.php');
 $base_dir = __DIR__ . '/';
-if (!file_exists($base_dir . 'includes/config.php')) {
+if (!file_exists($base_dir . 'inc/config.php')) {
     die('Configuration file not found: includes/config.php');
 }
-include($base_dir . 'includes/config.php');
+include($base_dir . 'inc/config.php');
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin'])) {
