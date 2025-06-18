@@ -121,6 +121,7 @@ try {
                 <div class="dropdown-menu dropdown-menu-right">
                     <a class="dropdown-item" href="profile"><i data-feather="user" class="align-self-center icon-xs icon-dual mr-1"></i> Profile</a>
                     <a class="dropdown-item" href="profile-edit"><i data-feather="settings" class="align-self-center icon-xs icon-dual mr-1"></i> Settings</a>
+                    <a class="dropdown-item" href="password-update"><i data-feather="lock" class="align-self-center icon-xs icon-dual mr-1"></i> Change Password</a>
                     <div class="dropdown-divider mb-0"></div>
                     <a class="dropdown-item" href="logout_action"><i data-feather="power" class="align-self-center icon-xs icon-dual mr-1"></i> Logout</a>
                 </div>
