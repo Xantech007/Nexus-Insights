@@ -13,10 +13,6 @@
 
 ?>
   <body>
-    <!--========== Preloader ==========-->
-  
-  <!--========== Preloader ==========-->
-
   <!-- scroll-to-top start -->
   <?php include('inc/scroll-to-top.php'); ?>  
   <!-- scroll-to-top end -->
@@ -49,11 +45,6 @@
       </div>
       <div class="container pt-120">
         <div class="row justify-content-center">
-          <div class="col-lg-10 mb-50">
-            <h2 class="font-weight-bold">Quick</h2>
-            <h2 class="font-weight-bold">Support.</h2>
-            <span>You can get all information</span>
-          </div>
           <div class="col-lg-10">
             <div class="row mb-none-30">
               <div class="col-md-4 col-sm-6 mb-30">
