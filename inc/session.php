@@ -4,11 +4,16 @@
 // Include database connection
 include_once 'conn.php';
 
+
 // Start session
 session_start();
 
 // Initialize database connection
 $pdo = new Database();
+
+// Existing session logic (e.g., session_start(), conn.php)
+$page_id = isset($page_id) ? $page_id : 'default'; // Default page_id
+require_once 'includes/realtime.php'; // Path to realtime.php
 
 // Visitor tracking logic (logs every page visit)
 try {
