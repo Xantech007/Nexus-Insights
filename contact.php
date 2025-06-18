@@ -88,7 +88,7 @@
             <div class="row mb-none-30">
               <div class="col-md-4 col-sm-6 mb-30">
                 <div class="contact-item">
-                  <i class="fab fa-whatsapp"></i>
+                  <i class="fa-brands fa-square-whatsapp"></i>
                   <h5 class="mt-2">WhatsApp Us</h5>
                   <div class="mt-4">
                     <p><?= $settings->phoneNumber; ?></p>
@@ -97,7 +97,7 @@
               </div>
               <div class="col-md-4 col-sm-6 mb-30">
                 <div class="contact-item">
-                  <i class="fa-light fa-envelope"></i>
+                  <i class="fas fa-envelope"></i>
                   <h5 class="mt-2">Mail Us</h5>
                   <div class="mt-4">
                     <p><?= $settings->email; ?><br/>
@@ -109,7 +109,7 @@
               </div>
               <div class="col-md-4 col-sm-6 mb-30">
                 <div class="contact-item">
-                  <i class="fal fa-map-marker-alt"></i>
+                  <i class="fas fa-map-marker-alt"></i>
                   <h5 class="mt-2">Visit Us</h5>
                   <div class="mt-4">
                     <p><?= $settings->address; ?></p>
