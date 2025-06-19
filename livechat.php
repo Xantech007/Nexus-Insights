@@ -14,26 +14,42 @@ $page_description = $settings->siteTitle . ' provides quality infrastructure bac
 
 include('inc/head.php');
 
-$id = $_SESSION['user'];
+// Initialize variables
+$user_id = null;
+$guest_id = null;
+$investor_name = 'Guest';
+$investor_email = 'N/A';
 
-// Fetch user details for email
+// Check if user is logged in
 $conn = $pdo->open();
-try {
-    $stmt = $conn->prepare("SELECT full_name, email FROM users WHERE id = :user_id");
-    $stmt->execute(['user_id' => $id]);
-    $user = $stmt->fetch();
-    if (!$user) {
-        $_SESSION['error'] = 'User not found';
-        header('location: ../login.php');
-        exit;
+if (isset($_SESSION['user'])) {
+    $user_id = $_SESSION['user'];
+    try {
+        $stmt = $conn->prepare("SELECT full_name, email FROM users WHERE id = :user_id");
+        $stmt->execute(['user_id' => $user_id]);
+        $user = $stmt->fetch();
+        if ($user) {
+            $investor_name = $user['full_name'];
+            $investor_email = $user['email'];
+        } else {
+            // User not found in database, treat as guest
+            $user_id = null;
+            unset($_SESSION['user']);
+        }
+    } catch (PDOException $e) {
+        error_log("Database error in user fetch: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
+        $user_id = null; // Treat as guest if database error occurs
     }
-    $investor_name = $user['full_name'];
-    $investor_email = $user['email'];
-} catch (PDOException $e) {
-    $_SESSION['error'] = 'Database error occurred: ' . $e->getMessage();
-    error_log("Database error in user fetch: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
-    header('location: ../login.php');
-    exit;
+}
+
+// If no user is logged in, assign a guest ID
+if (!$user_id) {
+    if (!isset($_COOKIE['guest_id'])) {
+        $guest_id = bin2hex(random_bytes(16)); // Generate a 32-character unique ID
+        setcookie('guest_id', $guest_id, time() + (365 * 24 * 60 * 60), "/", "", true, true); // 1-year cookie, Secure, HttpOnly
+    } else {
+        $guest_id = $_COOKIE['guest_id'];
+    }
 }
 
 // Handle new message submission
@@ -41,13 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $message = trim($_POST['message']);
     if (!empty($message)) {
         // Check if this is the first message in the chat
-        $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM live_chat WHERE user_id = ?");
-        $stmtCheck->execute([$id]);
+        $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM live_chat WHERE (user_id = ? OR guest_id = ?) AND (user_id IS NOT NULL OR guest_id IS NOT NULL)");
+        $stmtCheck->execute([$user_id ?: 0, $guest_id ?: '']);
         $chatCount = $stmtCheck->fetch(PDO::FETCH_OBJ)->count;
 
         // Insert message into database
-        $stmtInsert = $conn->prepare("INSERT INTO live_chat (user_id, sender, message, date_sent, status) VALUES (:user_id, 'user', :message, NOW(), 0)");
-        $stmtInsert->execute(['user_id' => $id, 'message' => $message]);
+        $stmtInsert = $conn->prepare("INSERT INTO live_chat (user_id, guest_id, sender, message, date_sent, status) VALUES (:user_id, :guest_id, 'user', :message, NOW(), 0)");
+        $stmtInsert->execute(['user_id' => $user_id, 'guest_id' => $guest_id, 'message' => $message]);
 
         // If this is the first message, send email to admin
         if ($chatCount == 0) {
@@ -96,18 +112,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                                                                             <strong>Dear Admin,</strong>
                                                                         </span>
                                                                     </p>
-                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
+                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
                                                                     <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'>
                                                                         <span style='color: #000000;'>
                                                                             A new live chat has been initiated with the following details:
                                                                             <br /><br />
                                                                             <strong>User:</strong> {$investor_name}<br />
                                                                             <strong>Email:</strong> {$investor_email}<br />
+                                                                            <strong>Guest ID:</strong> {$guest_id ?: 'N/A'}<br />
                                                                             <strong>Message:</strong> {$message}<br /><br />
                                                                             Please log in to the admin panel to respond to this chat.
                                                                         </span>
                                                                     </p>
-                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
+                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
                                                                     <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'>
                                                                         <span style='color: #000000;'>
                                                                             For any issues, contact
@@ -125,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                                 </td>
                             </tr>
                             <tr>
-                                <td> </td>
+                                <td> </td>
                             </tr>
                         </tbody>
                     </table>
@@ -209,7 +226,8 @@ HTML;
 }
 
 // Fetch chat messages
-$stmtQuery = $conn->query("SELECT * FROM live_chat WHERE user_id = $id ORDER BY date_sent ASC");
+$stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE (user_id = ? OR guest_id = ?) AND (user_id IS NOT NULL OR guest_id IS NOT NULL) ORDER BY date_sent ASC");
+$stmtQuery->execute([$user_id ?: 0, $guest_id ?: '']);
 if ($stmtQuery->rowCount()) {
     $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_OBJ);
 }
@@ -240,7 +258,7 @@ $pdo->close();
                                 </div>
                                 <div class="col-auto align-self-center">
                                     <a href="#" class="btn btn-sm btn-outline-primary" id="Dash_Date">
-                                        <span class="day-name" id="Day_Name">Today:</span> 
+                                        <span class="day-name" id="Day_Name">Today:</span> 
                                         <span class="" id="Select_date"><?php echo date('M d'); ?></span>
                                         <i data-feather="calendar" class="align-self-center icon-xs ml-1"></i>
                                     </a>
@@ -288,7 +306,7 @@ $pdo->close();
                                             <div class="chat-message mb-3 <?php echo $msg->sender === 'user' ? 'text-right' : 'text-left'; ?>">
                                                 <div class="card p-2 d-inline-block <?php echo $msg->sender === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
                                                     <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
-                                                    <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender === 'user' ? 'You' : 'Admin'; ?></small>
+                                                    <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender === 'user' ? ($user_id ? 'You' : 'Guest') : 'Admin'; ?></small>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
