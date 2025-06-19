@@ -53,11 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
 
         // Insert message into database
         $stmtInsert = $conn->prepare("INSERT INTO live_chat (user_id, guest_id, sender, message, date_sent, status) VALUES (:user_id, :guest_id, 'user', :message, NOW(), 0)");
-        $stmtInsert->execute([
-            'user_id' => 0, // Always 0 for guests
-            'guest_id' => $guest_id,
-            'message' => $message
-        ]);
+        $user_id = 0; // Always 0 for guests
+        $stmtInsert->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmtInsert->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
+        $stmtInsert->bindParam(':message', $message, PDO::PARAM_STR);
+        $stmtInsert->execute();
 
         // If this is the first message, send email to admin
         if ($chatCount == 0) {
@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                                                                 <td style='padding: 16px 10px 0;'>
                                                                     <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'>
                                                                         <span style='font-size: 12pt; font-family: arial black, sans-serif; color: #000000;'>
-                                                                            <strong>Dear Admin,</strong>
+                                                                            <strong>Dear Livechat Agent,</strong>
                                                                         </span>
                                                                     </p>
                                                                     <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
@@ -197,7 +197,7 @@ HTML;
 
                 // Recipients
                 $adminMail->setFrom($smtpConfig['fromEmail'], $smtpConfig['fromName']);
-                $adminMail->addAddress($settings->email2, 'Admin');
+                $adminMail->addAddress($settings->email2, 'Livechat Agent');
 
                 // Content
                 $adminMail->isHTML(true);
@@ -296,7 +296,7 @@ $pdo->close();
                                             <div class="chat-message mb-3 <?= $msg['sender'] === 'user' ? 'text-right' : 'text-left'; ?>">
                                                 <div class="card p-2 d-inline-block <?= $msg['sender'] === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
                                                     <p class="mb-1"><?= htmlspecialchars($msg['message']); ?></p>
-                                                    <small class="text-muted"><?= $msg['date_sent']; ?> - <?= $msg['sender'] === 'user' ? 'Guest' : 'Admin'; ?></small>
+                                                    <small class="text-muted"><?= $msg['date_sent']; ?> - <?= $msg['sender'] === 'user' ? 'Guest' : 'Livechat Agent'; ?></small>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
