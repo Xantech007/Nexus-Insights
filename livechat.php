@@ -55,6 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
         $stmtInsert->bindParam(':message', $message, PDO::PARAM_STR);
         $stmtInsert->execute();
 
+        // Debug: Verify insertion
+        $lastInsertId = $conn->lastInsertId();
+        error_log("Guest message inserted: ID=$lastInsertId, guest_id=$guest_id, message=$message", 3, __DIR__ . "/debug_log.txt");
+
         // If this is the first message, send email to admin
         if ($chatCount == 0) {
             $sweet_url = isset($sweet_url) ? $sweet_url : 'nexusinsights.it.com'; // Fallback URL
@@ -220,10 +224,12 @@ HTML;
 $stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
 $stmtQuery->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
 $stmtQuery->execute();
-if ($stmtQuery->rowCount()) {
-    $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
-} else {
-    $chatMessages = [];
+$chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC); // Always initialize as array
+
+// Debug: Log fetched messages
+error_log("Fetched " . count($chatMessages) . " messages for guest_id=$guest_id", 3, __DIR__ . "/debug_log.txt");
+foreach ($chatMessages as $msg) {
+    error_log("Message: sender={$msg['sender']}, message={$msg['message']}, date_sent={$msg['date_sent']}", 3, __DIR__ . "/debug_log.txt");
 }
 
 $pdo->close();
@@ -306,8 +312,8 @@ ob_end_flush();
                                         <?php foreach ($chatMessages as $msg) : ?>
                                             <div class="chat-message mb-3 <?= $msg['sender'] === 'user' ? 'text-right' : 'text-left'; ?>">
                                                 <div class="card p-2 d-inline-block <?= $msg['sender'] === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
-                                                    <p class="mb-1"><?= htmlspecialchars($msg['message']); ?></p>
-                                                    <small class="text-muted"><?= $msg['date_sent']; ?> - <?= $msg['sender'] === 'user' ? 'Guest' : 'Livechat Agent'; ?></small>
+                                                    <p class="mb-1"><?= htmlspecialchars($msg['message'] ?? ''); ?></p>
+                                                    <small class="text-muted"><?= htmlspecialchars($msg['date_sent'] ?? ''); ?> - <?= $msg['sender'] === 'user' ? 'Guest' : 'Livechat Agent'; ?></small>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
