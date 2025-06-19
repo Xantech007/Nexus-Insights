@@ -195,10 +195,10 @@ include('includes/scripts.php');
                     <div class="chat-box" style="max-height: 400px; overflow-y: auto;">
                       <?php if (!empty($chatMessages)) : ?>
                         <?php foreach ($chatMessages as $msg) : ?>
-                          <div class="chat-message mb-3 <?php echo $msg->sender == 'Supoort Agent' ? 'text-right' : 'text-left'; ?>">
-                            <div class="card p-2 d-inline-block <?php echo $msg->sender === 'Support agent' ? 'bg-admin' : 'bg-user'; ?>">
+                          <div class="chat-message mb-3 <?php echo $msg->sender == 'admin' ? 'text-right' : 'text-left'; ?>">
+                            <div class="card p-2 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-admin' : 'bg-user'; ?>">
                               <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
-                              <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender == 'Support Agent' ? 'You' : ($msg->guest_id ? 'Guest' : 'User'); ?></small>
+                              <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender == 'admin' ? 'You' : ($msg->guest_id ? 'Guest' : 'User'); ?></small>
                             </div>
                           </div>
                         <?php endforeach; ?>
