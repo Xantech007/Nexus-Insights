@@ -4,7 +4,6 @@
 // Include database connection
 include_once 'conn.php';
 
-
 // Start session
 session_start();
 
@@ -77,12 +76,12 @@ if (isset($_SESSION['user'])) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Floating Live Chat Button Styling */
         .livechat-button {
@@ -100,7 +99,6 @@ if (isset($_SESSION['user'])) {
             align-items: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-decoration: none;
-            font-size: 24px;
             transition: background-color 0.3s, transform 0.3s;
         }
 
@@ -109,9 +107,8 @@ if (isset($_SESSION['user'])) {
             transform: scale(1.1); /* Slight zoom effect */
         }
 
-        .livechat-button img {
-            width: 30px;
-            height: 30px;
+        .livechat-button i {
+            font-size: 30px; /* Adjust icon size */
         }
 
         /* Responsive design for smaller screens */
@@ -123,20 +120,22 @@ if (isset($_SESSION['user'])) {
                 right: 10px;
             }
 
-            .livechat-button img {
-                width: 25px;
-                height: 25px;
+            .livechat-button i {
+                font-size: 25px; /* Adjust icon size for smaller screens */
             }
         }
     </style>
 </head>
 <body>
     <!-- Floating Live Chat Button -->
-    <a href="livechat.php" class="livechat-button" title="Open Live Chat">
-        <!-- You can use an icon (e.g., a chat bubble image or Font Awesome icon) -->
-        <img src="path/to/chat-icon.png" alt="Chat Icon">
-        <!-- Alternatively, use a text symbol if no image is available -->
-        <!-- 💬 -->
-    </a>
+    <?php
+    $current_page = basename($_SERVER['PHP_SELF']);
+    $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if ($current_page !== 'livechat.php' && !str_ends_with($current_path, '/accounts/livechat.php')) {
+    ?>
+        <a href="livechat.php" class="livechat-button" title="Open Live Chat">
+            <i class="fas fa-headset"></i>
+        </a>
+    <?php } ?>
 </body>
-    </html>
+</html>
