@@ -23,7 +23,7 @@ $page_parent = '';
 $page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
 $page_description = $settings->siteTitle . ' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
 
-include('inc/head.php');
+include_once('inc/head.php');
 
 // Initialize variables for guest
 $guest_id = null;
@@ -241,7 +241,7 @@ $pdo->close();
 
     <div class="page-wrapper">
         <!-- header-section start -->
-        <?php include('inc/header.php'); ?>    
+        <?php include_once('inc/header.php'); ?>    
         <!-- header-section end -->
 
         <!-- inner hero start -->
