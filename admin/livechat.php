@@ -1,5 +1,5 @@
 <?php
-// Enable error reporting for debugging
+// Enable error reporting for debugging (remove in production)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -19,18 +19,30 @@ if (!isset($_SESSION['admin'])) {
 $conn = $pdo->open();
 
 // Handle message submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message']) && isset($_POST['user_id'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message']) && (isset($_POST['user_id']) || isset($_POST['guest_id']))) {
     $message = trim($_POST['message']);
-    $user_id = intval($_POST['user_id']);
-    if (!empty($message) && $user_id > 0) {
+    $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+    $guest_id = isset($_POST['guest_id']) ? trim($_POST['guest_id']) : null;
+
+    if (!empty($message) && ($user_id > 0 || !empty($guest_id))) {
         try {
             // Insert admin message
-            $stmtInsert = $conn->prepare("INSERT INTO live_chat (user_id, sender, message, date_sent, status) VALUES (:user_id, 'admin', :message, NOW(), 0)");
-            $stmtInsert->execute(['user_id' => $user_id, 'message' => $message]);
+            $stmtInsert = $conn->prepare("INSERT INTO live_chat (user_id, guest_id, sender, message, date_sent, status) VALUES (:user_id, :guest_id, 'admin', :message, NOW(), 0)");
+            $stmtInsert->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+            $stmtInsert->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
+            $stmtInsert->bindParam(':message', $message, PDO::PARAM_STR);
+            $stmtInsert->execute();
 
-            // Update status of user's messages to read
-            $stmtUpdate = $conn->prepare("UPDATE live_chat SET status = 1 WHERE user_id = :user_id AND sender = 'user'");
-            $stmtUpdate->execute(['user_id' => $user_id]);
+            // Update status of user's or guest's messages to read
+            if ($user_id > 0) {
+                $stmtUpdate = $conn->prepare("UPDATE live_chat SET status = 1 WHERE user_id = :user_id AND sender = 'user'");
+                $stmtUpdate->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                $stmtUpdate->execute();
+            } elseif (!empty($guest_id)) {
+                $stmtUpdate = $conn->prepare("UPDATE live_chat SET status = 1 WHERE guest_id = :guest_id AND sender = 'user'");
+                $stmtUpdate->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
+                $stmtUpdate->execute();
+            }
 
             $_SESSION['success'] = "Message sent successfully!";
         } catch (PDOException $e) {
@@ -38,32 +50,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message']) && isset($
             error_log("Database error in admin message send: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
         }
     } else {
-        $_SESSION['error'] = "Message cannot be empty or invalid user.";
+        $_SESSION['error'] = "Message cannot be empty or invalid user/guest.";
     }
-    header("location: livechat.php?user_id=$user_id");
+    // Redirect to the same user/guest chat
+    $redirect_param = $user_id > 0 ? "user_id=$user_id" : "guest_id=$guest_id";
+    header("location: livechat.php?$redirect_param");
     exit;
 }
 
-// Fetch all users with chats
-$chatUsers = [];
+// Fetch all users and guests with chats
+$chatEntities = [];
 try {
-    $stmtUsers = $conn->query("SELECT DISTINCT u.id, u.full_name, u.email 
+    // Fetch users with chats
+    $stmtUsers = $conn->query("SELECT DISTINCT u.id, u.full_name, u.email, NULL as guest_id 
                                FROM users u 
                                JOIN live_chat lc ON u.id = lc.user_id 
+                               WHERE lc.user_id > 0
                                ORDER BY u.full_name");
-    $chatUsers = $stmtUsers->fetchAll(PDO::FETCH_OBJ);
+    $users = $stmtUsers->fetchAll(PDO::FETCH_OBJ);
+
+    // Fetch guests with chats
+    $stmtGuests = $conn->query("SELECT DISTINCT NULL as id, 'Guest' as full_name, 'N/A' as email, lc.guest_id 
+                                FROM live_chat lc 
+                                WHERE lc.guest_id IS NOT NULL AND lc.user_id = 0
+                                ORDER BY lc.guest_id");
+    $guests = $stmtGuests->fetchAll(PDO::FETCH_OBJ);
+
+    // Combine users and guests
+    $chatEntities = array_merge($users, $guests);
 } catch (PDOException $e) {
     $_SESSION['error'] = 'Database error occurred: ' . $e->getMessage();
-    error_log("Database error in fetching users: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
+    error_log("Database error in fetching users/guests: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
 }
 
-// Fetch messages for selected user
+// Fetch messages for selected user or guest
 $chatMessages = [];
 $selected_user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
-if ($selected_user_id > 0) {
+$selected_guest_id = isset($_GET['guest_id']) ? trim($_GET['guest_id']) : null;
+
+if ($selected_user_id > 0 || !empty($selected_guest_id)) {
     try {
-        $stmtMessages = $conn->prepare("SELECT * FROM live_chat WHERE user_id = :user_id ORDER BY date_sent ASC");
-        $stmtMessages->execute(['user_id' => $selected_user_id]);
+        if ($selected_user_id > 0) {
+            $stmtMessages = $conn->prepare("SELECT * FROM live_chat WHERE user_id = :user_id ORDER BY date_sent ASC");
+            $stmtMessages->bindParam(':user_id', $selected_user_id, PDO::PARAM_INT);
+        } else {
+            $stmtMessages = $conn->prepare("SELECT * FROM live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
+            $stmtMessages->bindParam(':guest_id', $selected_guest_id, PDO::PARAM_STR);
+        }
+        $stmtMessages->execute();
         $chatMessages = $stmtMessages->fetchAll(PDO::FETCH_OBJ);
     } catch (PDOException $e) {
         $_SESSION['error'] = 'Database error occurred: ' . $e->getMessage();
@@ -126,15 +160,17 @@ include('includes/scripts.php');
             </div>
             <div class="box-body" style="padding: 20px;">
               <div class="row">
-                <!-- User List -->
+                <!-- User/Guest List -->
                 <div class="col-md-4">
-                  <h5>Users with Chats</h5>
+                  <h5>Chats</h5>
                   <ul class="list-group">
-                    <?php if (!empty($chatUsers)) : ?>
-                      <?php foreach ($chatUsers as $user) : ?>
+                    <?php if (!empty($chatEntities)) : ?>
+                      <?php foreach ($chatEntities as $entity) : ?>
                         <li class="list-group-item">
-                          <a href="livechat.php?user_id=<?php echo $user->id; ?>" class="<?php echo $selected_user_id == $user->id ? 'active' : ''; ?>">
-                            <?php echo htmlspecialchars($user->full_name); ?> (<?php echo htmlspecialchars($user->email); ?>)
+                          <a href="livechat.php?<?php echo $entity->id > 0 ? 'user_id=' . $entity->id : 'guest_id=' . urlencode($entity->guest_id); ?>" 
+                             class="<?php echo ($selected_user_id == $entity->id || $selected_guest_id == $entity->guest_id) ? 'active' : ''; ?>">
+                            <?php echo htmlspecialchars($entity->full_name); ?>
+                            <?php echo $entity->id > 0 ? ' (' . htmlspecialchars($entity->email) . ')' : ' (Guest ID: ' . htmlspecialchars(substr($entity->guest_id, 0, 8) . '...') . ')'; ?>
                           </a>
                         </li>
                       <?php endforeach; ?>
@@ -145,16 +181,16 @@ include('includes/scripts.php');
                 </div>
                 <!-- Chat Area -->
                 <div class="col-md-8">
-                  <?php if ($selected_user_id > 0) : ?>
+                  <?php if ($selected_user_id > 0 || !empty($selected_guest_id)) : ?>
                     <h5>Chat with <?php
-                      $selected_user_name = 'Unknown User';
-                      foreach ($chatUsers as $user) {
-                        if ($user->id == $selected_user_id) {
-                          $selected_user_name = $user->full_name;
+                      $selected_name = 'Unknown';
+                      foreach ($chatEntities as $entity) {
+                        if ($entity->id == $selected_user_id || $entity->guest_id == $selected_guest_id) {
+                          $selected_name = $entity->full_name . ($entity->id > 0 ? ' (' . $entity->email . ')' : ' (Guest ID: ' . substr($entity->guest_id, 0, 8) . '...)');
                           break;
                         }
                       }
-                      echo htmlspecialchars($selected_user_name);
+                      echo htmlspecialchars($selected_name);
                     ?></h5>
                     <div class="chat-box" style="max-height: 400px; overflow-y: auto;">
                       <?php if (!empty($chatMessages)) : ?>
@@ -162,7 +198,7 @@ include('includes/scripts.php');
                           <div class="chat-message mb-3 <?php echo $msg->sender == 'admin' ? 'text-right' : 'text-left'; ?>">
                             <div class="card p-2 d-inline-block <?php echo $msg->sender === 'admin' ? 'bg-admin' : 'bg-user'; ?>">
                               <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
-                              <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender == 'admin' ? 'You' : 'User'; ?></small>
+                              <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender == 'admin' ? 'You' : ($msg->guest_id ? 'Guest' : 'User'); ?></small>
                             </div>
                           </div>
                         <?php endforeach; ?>
@@ -172,7 +208,11 @@ include('includes/scripts.php');
                     </div>
                     <!-- Message Input Form -->
                     <form method="POST" action="">
-                      <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($selected_user_id); ?>">
+                      <?php if ($selected_user_id > 0) : ?>
+                        <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($selected_user_id); ?>">
+                      <?php else : ?>
+                        <input type="hidden" name="guest_id" value="<?php echo htmlspecialchars($selected_guest_id); ?>">
+                      <?php endif; ?>
                       <div class="input-group mt-3">
                         <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required></textarea>
                         <div class="input-group-append">
@@ -181,7 +221,7 @@ include('includes/scripts.php');
                       </div>
                     </form>
                   <?php else : ?>
-                    <p>Select a user to view their messages.</p>
+                    <p>Select a user or guest to view their messages.</p>
                   <?php endif; ?>
                 </div>
               </div>
@@ -209,6 +249,10 @@ include('includes/scripts.php');
 .list-group-item {
   margin-bottom: 5px;
   border-radius: 5px;
+}
+.list-group-item a.active {
+  background-color: #007bff;
+  color: white;
 }
 .input-group textarea {
   padding: 10px;
