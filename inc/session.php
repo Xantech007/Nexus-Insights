@@ -100,7 +100,7 @@ if (isset($_SESSION['user'])) {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-decoration: none;
             transition: background-color 0.3s, transform 0.3s;
-            pointer-events: auto; /* Ensure the button is interactive */
+            pointer-events: auto; /* Ensure button is interactive */
         }
 
         .livechat-button:hover {
@@ -122,16 +122,14 @@ if (isset($_SESSION['user'])) {
             border-radius: 6px;
             position: absolute;
             z-index: 1001; /* Ensure tooltip is above other elements */
-            bottom: 70px; /* Position above the button */
-            right: 50%; /* Center horizontally relative to button */
-            transform: translateX(50%); /* Adjust for centering */
+            bottom: 75px; /* Position just above the button */
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%); /* Adjust for centering */
             white-space: nowrap;
             font-size: 14px;
             font-family: Arial, sans-serif; /* Fallback font */
             opacity: 0;
             transition: opacity 0.3s, visibility 0.3s;
-            /* Debug: Add border to make tooltip visible during testing */
-            border: 1px solid #fff;
         }
 
         .livechat-button:hover .tooltip {
@@ -153,7 +151,7 @@ if (isset($_SESSION['user'])) {
             }
 
             .livechat-button .tooltip {
-                bottom: 60px; /* Adjust tooltip position for smaller screens */
+                bottom: 65px; /* Adjust tooltip position for smaller button */
                 font-size: 12px; /* Smaller font size for mobile */
             }
         }
