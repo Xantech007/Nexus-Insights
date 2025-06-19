@@ -86,7 +86,7 @@ if (isset($_SESSION['user'])) {
         /* Floating Live Chat Button Styling */
         .livechat-button {
             position: fixed;
-            bottom: 20px;
+            bottom: 40px; /* Increased to make space for text */
             right: 20px;
             z-index: 1000;
             background-color: #4CAF50; /* Green background */
@@ -112,29 +112,21 @@ if (isset($_SESSION['user'])) {
             font-size: 30px; /* Adjust icon size */
         }
 
-        /* Tooltip Styling */
-        .livechat-button .tooltip {
-            visibility: hidden;
+        /* Static Help Text Styling */
+        .livechat-button .help-text {
+            position: absolute;
+            bottom: 70px; /* Position directly above the button */
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%); /* Adjust for centering */
             background-color: #333;
             color: #fff;
             text-align: center;
             padding: 8px 12px;
             border-radius: 6px;
-            position: absolute;
-            z-index: 1001; /* Ensure tooltip is above other elements */
-            bottom: 75px; /* Position just above the button */
-            left: 50%; /* Center horizontally */
-            transform: translateX(-50%); /* Adjust for centering */
             white-space: nowrap;
             font-size: 14px;
             font-family: Arial, sans-serif; /* Fallback font */
-            opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
-
-        .livechat-button:hover .tooltip {
-            visibility: visible;
-            opacity: 1;
+            z-index: 1001; /* Ensure text is above other elements */
         }
 
         /* Responsive design for smaller screens */
@@ -142,7 +134,7 @@ if (isset($_SESSION['user'])) {
             .livechat-button {
                 width: 50px;
                 height: 50px;
-                bottom: 10px;
+                bottom: 30px; /* Adjust for smaller text */
                 right: 10px;
             }
 
@@ -150,9 +142,10 @@ if (isset($_SESSION['user'])) {
                 font-size: 25px; /* Adjust icon size for smaller screens */
             }
 
-            .livechat-button .tooltip {
-                bottom: 65px; /* Adjust tooltip position for smaller button */
+            .livechat-button .help-text {
+                bottom: 60px; /* Adjust position for smaller button */
                 font-size: 12px; /* Smaller font size for mobile */
+                padding: 6px 10px; /* Slightly smaller padding */
             }
         }
     </style>
@@ -165,9 +158,9 @@ if (isset($_SESSION['user'])) {
     if ($current_page !== 'livechat.php' && !str_ends_with($current_path, '/accounts/livechat.php')) {
     ?>
         <a href="livechat.php" class="livechat-button">
+            <span class="help-text">Need help?</span>
             <i class="fas fa-headset"></i>
-            <span class="tooltip">Need Help?</span>
         </a>
     <?php } ?>
 </body>
-</html>
+    </html>
