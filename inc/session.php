@@ -111,6 +111,46 @@ if (isset($_SESSION['user'])) {
             font-size: 30px; /* Adjust icon size */
         }
 
+        /* Tooltip for "Need Help" pop-up */
+        .livechat-button {
+            position: relative; /* Needed for tooltip positioning */
+        }
+
+        .livechat-button::before {
+            content: 'Need Help?'; /* Tooltip text */
+            position: absolute;
+            bottom: 70px; /* Position above the button */
+            right: 50%;
+            transform: translateX(50%); /* Center horizontally */
+            background-color: #333; /* Dark background for tooltip */
+            color: #fff; /* White text */
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.3s ease;
+            z-index: 1001; /* Ensure tooltip is above other elements */
+        }
+
+        .livechat-button::after {
+            content: '';
+            position: absolute;
+            bottom: 62px; /* Position below the tooltip */
+            right: 50%;
+            transform: translateX(50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent; /* Triangle pointing down */
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.3s ease;
+        }
+
+        .livechat-button:hover::before,
+        .livechat-button:hover::after {
+            opacity: 1; /* Show tooltip on hover */
+        }
+
         /* Responsive design for smaller screens */
         @media (max-width: 768px) {
             .livechat-button {
@@ -122,6 +162,17 @@ if (isset($_SESSION['user'])) {
 
             .livechat-button i {
                 font-size: 25px; /* Adjust icon size for smaller screens */
+            }
+
+            .livechat-button::before {
+                font-size: 12px; /* Smaller text on mobile */
+                padding: 6px 10px;
+                bottom: 60px; /* Adjust position for smaller button */
+            }
+
+            .livechat-button::after {
+                bottom: 54px; /* Adjust triangle position */
+                border-width: 5px; /* Smaller triangle */
             }
         }
     </style>
