@@ -1,4 +1,9 @@
 <?php
+// Enable error reporting for debugging (remove in production)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 include('init.php');
 include('admin/includes/format.php');
 
@@ -6,6 +11,13 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 require 'vendor/autoload.php'; // PHPMailer dependency
 
+// Check if user is logged in
+if (isset($_SESSION['user'])) {
+    header('Location: account/livechat.php');
+    exit;
+}
+
+// Page metadata
 $page_name = 'Live Chat';
 $page_parent = '';
 $page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
@@ -13,8 +25,7 @@ $page_description = $settings->siteTitle . ' provides quality infrastructure bac
 
 include('inc/head.php');
 
-// Initialize variables
-$user_id = null;
+// Initialize variables for guest
 $guest_id = null;
 $investor_name = 'Guest';
 $investor_email = 'N/A';
@@ -22,35 +33,12 @@ $investor_email = 'N/A';
 // Open database connection
 $conn = $pdo->open();
 
-// Check if user is logged in
-if (isset($_SESSION['user'])) {
-    $user_id = $_SESSION['user'];
-    try {
-        $stmt = $conn->prepare("SELECT full_name, email FROM users WHERE id = :user_id");
-        $stmt->execute(['user_id' => $user_id]);
-        $user = $stmt->fetch();
-        if ($user) {
-            $investor_name = $user['full_name'];
-            $investor_email = $user['email'];
-        } else {
-            // User not found in database, treat as guest
-            $user_id = null;
-            unset($_SESSION['user']);
-        }
-    } catch (PDOException $e) {
-        error_log("Database error in user fetch: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
-        $user_id = null; // Treat as guest if database error occurs
-    }
-}
-
-// If no user is logged in, assign a guest ID
-if (!$user_id) {
-    if (!isset($_COOKIE['guest_id'])) {
-        $guest_id = bin2hex(random_bytes(16)); // 32-character unique ID
-        setcookie('guest_id', $guest_id, time() + (365 * 24 * 60 * 60), "/", "", true, true); // 1-year cookie, Secure, HttpOnly
-    } else {
-        $guest_id = $_COOKIE['guest_id'];
-    }
+// Assign guest ID
+if (!isset($_COOKIE['guest_id'])) {
+    $guest_id = bin2hex(random_bytes(16)); // 32-character unique ID
+    setcookie('guest_id', $guest_id, time() + (365 * 24 * 60 * 60), "/", "", true, true); // 1-year cookie, Secure, HttpOnly
+} else {
+    $guest_id = $_COOKIE['guest_id'];
 }
 
 // Handle new message submission
@@ -58,18 +46,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $message = trim($_POST['message']);
     if (!empty($message)) {
         // Check if this is the first message in the chat
-        $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id)");
-        $user_id_param = $user_id !== null ? $user_id : 0;
-        $guest_id_param = $guest_id !== null ? $guest_id : '';
-        $stmtCheck->execute([
-            'user_id' => $user_id_param,
-            'guest_id' => $guest_id_param
-        ]);
+        $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM live_chat WHERE guest_id = :guest_id");
+        $stmtCheck->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
+        $stmtCheck->execute();
         $chatCount = $stmtCheck->fetch(PDO::FETCH_ASSOC)['count'];
 
         // Insert message into database
         $stmtInsert = $conn->prepare("INSERT INTO live_chat (user_id, guest_id, sender, message, date_sent, status) VALUES (:user_id, :guest_id, 'user', :message, NOW(), 0)");
-        $stmtInsert->execute(['user_id' => $user_id, 'guest_id' => $guest_id, 'message' => $message]);
+        $stmtInsert->execute([
+            'user_id' => 0, // Always 0 for guests
+            'guest_id' => $guest_id,
+            'message' => $message
+        ]);
 
         // If this is the first message, send email to admin
         if ($chatCount == 0) {
@@ -232,13 +220,9 @@ HTML;
 }
 
 // Fetch chat messages
-$stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id) ORDER BY date_sent ASC");
-$user_id_param = $user_id !== null ? $user_id : 0;
-$guest_id_param = $guest_id !== null ? $guest_id : '';
-$stmtQuery->execute([
-    'user_id' => $user_id_param,
-    'guest_id' => $guest_id_param
-]);
+$stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
+$stmtQuery->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
+$stmtQuery->execute();
 if ($stmtQuery->rowCount()) {
     $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -312,7 +296,7 @@ $pdo->close();
                                             <div class="chat-message mb-3 <?= $msg['sender'] === 'user' ? 'text-right' : 'text-left'; ?>">
                                                 <div class="card p-2 d-inline-block <?= $msg['sender'] === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
                                                     <p class="mb-1"><?= htmlspecialchars($msg['message']); ?></p>
-                                                    <small class="text-muted"><?= $msg['date_sent']; ?> - <?= $msg['sender'] === 'user' ? ($user_id ? 'You' : 'Guest') : 'Admin'; ?></small>
+                                                    <small class="text-muted"><?= $msg['date_sent']; ?> - <?= $msg['sender'] === 'user' ? 'Guest' : 'Admin'; ?></small>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
