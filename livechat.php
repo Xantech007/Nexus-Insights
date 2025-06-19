@@ -1,11 +1,6 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-include('inc/config.php');
+include('init.php');
 include('admin/includes/format.php');
-include('inc/session.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -51,7 +46,7 @@ if (isset($_SESSION['user'])) {
 // If no user is logged in, assign a guest ID
 if (!$user_id) {
     if (!isset($_COOKIE['guest_id'])) {
-        $guest_id = bin2hex(random_bytes(16)); // 32-character unique ID (PHP 8.1 compatible)
+        $guest_id = bin2hex(random_bytes(16)); // 32-character unique ID
         setcookie('guest_id', $guest_id, time() + (365 * 24 * 60 * 60), "/", "", true, true); // 1-year cookie, Secure, HttpOnly
     } else {
         $guest_id = $_COOKIE['guest_id'];
@@ -251,78 +246,73 @@ if ($stmtQuery->rowCount()) {
 $pdo->close();
 ?>
 
-<body class="dark-topbar">
-    <!-- Left Sidenav -->
-    <?php include('inc/sidebar.php'); ?>
-    <!-- end left-sidenav-->
+<body>
+    <!-- scroll-to-top start -->
+    <?php include('inc/scroll-to-top.php'); ?>  
+    <!-- scroll-to-top end -->
+
+    <!-- STAR ANIMATION -->
+    <?php include('inc/star-animation.php'); ?>
+    <!-- / STAR ANIMATION -->
 
     <div class="page-wrapper">
-        <!-- Top Bar Start -->
-        <?php include('inc/header.php'); ?>
-        <!-- Top Bar End -->
+        <!-- header-section start -->
+        <?php include('inc/header.php'); ?>    
+        <!-- header-section end -->
 
-        <!-- Page Content-->
-        <div class="page-content">
-            <div class="container-fluid">
-                <!-- Page-Title -->
+        <!-- inner hero start -->
+        <section class="inner-hero bg_img" data-background="assets/images/bg/bg-1.jpg">
+            <div class="container">
                 <div class="row">
-                    <div class="col-sm-12">
-                        <div class="page-title-box">
-                            <div class="row">
-                                <div class="col">
-                                    <h4 class="page-title">Live Chat</h4>
-                                </div>
-                                <div class="col-auto align-self-center">
-                                    <a href="#" class="btn btn-sm btn-outline-primary" id="Dash_Date">
-                                        <span class="day-name" id="Day_Name">Today:</span> 
-                                        <span class="" id="Select_date"><?php echo date('M d'); ?></span>
-                                        <i data-feather="calendar" class="align-self-center icon-xs ml-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="col-lg-6">
+                        <h2 class="page-title">Live Chat</h2>
+                        <ul class="page-breadcrumb">
+                            <li><a href="<?= $baseurl ?>">Home</a></li>
+                            <li>Live Chat</li>
+                        </ul>
                     </div>
                 </div>
-                <!-- end page title -->
+            </div>
+        </section>
+        <!-- inner hero end -->
 
-                <!-- Display Success/Error Messages -->
-                <?php
-                if (isset($_SESSION['error'])) {
-                    echo "
-                        <div class='alert alert-danger border-0' role='alert'>
-                            <i class='la la-skull-crossbones alert-icon text-danger align-self-center font-30 mr-3'></i>
-                            <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                                <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
-                            </button>
-                            <strong>Oh snap!</strong> " . htmlspecialchars($_SESSION['error']) . "
-                        </div>";
-                    unset($_SESSION['error']);
-                }
-                if (isset($_SESSION['success'])) {
-                    echo "
-                        <div class='alert alert-success border-0' role='alert'>
-                            <i class='mdi mdi-check-all alert-icon'></i>
-                            <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                                <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
-                            </button>
-                            <strong>Well done!</strong> " . htmlspecialchars($_SESSION['success']) . "
-                        </div>";
-                    unset($_SESSION['success']);
-                }
-                ?>
+        <!-- chat section start -->
+        <section class="pt-120 pb-120">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <!-- Display Success/Error Messages -->
+                        <?php if (isset($_SESSION['error'])) : ?>
+                            <div class='alert alert-danger border-0' role='alert'>
+                                <i class='la la-skull-crossbones alert-icon text-danger align-self-center font-30 mr-3'></i>
+                                <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                                    <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
+                                </button>
+                                <strong>Oh snap!</strong> <?= htmlspecialchars($_SESSION['error']) ?>
+                            </div>
+                            <?php unset($_SESSION['error']); ?>
+                        <?php endif; ?>
+                        <?php if (isset($_SESSION['success'])) : ?>
+                            <div class='alert alert-success border-0' role='alert'>
+                                <i class='mdi mdi-check-all alert-icon'></i>
+                                <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                                    <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
+                                </button>
+                                <strong>Well done!</strong> <?= htmlspecialchars($_SESSION['success']) ?>
+                            </div>
+                            <?php unset($_SESSION['success']); ?>
+                        <?php endif; ?>
 
-                <div class="row">
-                    <div class="col-12">
                         <div class="card">
                             <div class="card-body">
                                 <!-- Chat Messages -->
                                 <div class="chat-box" style="max-height: 400px; overflow-y: auto;">
                                     <?php if (!empty($chatMessages)) : ?>
                                         <?php foreach ($chatMessages as $msg) : ?>
-                                            <div class="chat-message mb-3 <?php echo $msg['sender'] === 'user' ? 'text-right' : 'text-left'; ?>">
-                                                <div class="card p-2 d-inline-block <?php echo $msg['sender'] === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
-                                                    <p class="mb-1"><?php echo htmlspecialchars($msg['message']); ?></p>
-                                                    <small class="text-muted"><?php echo $msg['date_sent']; ?> - <?php echo $msg['sender'] === 'user' ? ($user_id ? 'You' : 'Guest') : 'Admin'; ?></small>
+                                            <div class="chat-message mb-3 <?= $msg['sender'] === 'user' ? 'text-right' : 'text-left'; ?>">
+                                                <div class="card p-2 d-inline-block <?= $msg['sender'] === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
+                                                    <p class="mb-1"><?= htmlspecialchars($msg['message']); ?></p>
+                                                    <small class="text-muted"><?= $msg['date_sent']; ?> - <?= $msg['sender'] === 'user' ? ($user_id ? 'You' : 'Guest') : 'Admin'; ?></small>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
@@ -340,17 +330,18 @@ $pdo->close();
                                         </div>
                                     </div>
                                 </form>
-                            </div><!--end card-body-->
-                        </div><!--end card-->
-                    </div><!--end col-->
-                </div><!--end row-->
-            </div><!-- container -->
+                            </div><!-- end card-body -->
+                        </div><!-- end card -->
+                    </div><!-- end col -->
+                </div><!-- end row -->
+            </div><!-- end container -->
+        </section>
+        <!-- chat section end -->
 
-            <?php include('inc/footer.php'); ?><!--end footer-->
-        </div>
-        <!-- end page content -->
-    </div>
-    <!-- end page-wrapper -->
+        <!-- footer section start -->
+        <?php include('inc/footer.php'); ?>
+        <!-- footer section end -->
+    </div><!-- page-wrapper end -->
 
     <?php include('inc/scripts.php'); ?>
 </body>
