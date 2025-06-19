@@ -288,7 +288,7 @@ $pdo->close();
                                             <div class="chat-message mb-3 <?php echo $msg->sender === 'user' ? 'text-right' : 'text-left'; ?>">
                                                 <div class="card p-2 d-inline-block <?php echo $msg->sender === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
                                                     <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
-                                                    <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender === 'user' ? 'You' : 'Admin'; ?></small>
+                                                    <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender === 'user' ? 'You' : 'Livechat Agent'; ?></small>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
