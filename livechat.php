@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 include('inc/config.php');
 include('admin/includes/format.php');
 include('inc/session.php');
@@ -47,7 +51,7 @@ if (isset($_SESSION['user'])) {
 // If no user is logged in, assign a guest ID
 if (!$user_id) {
     if (!isset($_COOKIE['guest_id'])) {
-        $guest_id = bin2hex(random_bytes(16)); // Generate a 32-character unique ID
+        $guest_id = bin2hex(random_bytes(16)); // 32-character unique ID (PHP 8.1 compatible)
         setcookie('guest_id', $guest_id, time() + (365 * 24 * 60 * 60), "/", "", true, true); // 1-year cookie, Secure, HttpOnly
     } else {
         $guest_id = $_COOKIE['guest_id'];
@@ -60,11 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     if (!empty($message)) {
         // Check if this is the first message in the chat
         $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id)");
+        $user_id_param = $user_id !== null ? $user_id : 0;
+        $guest_id_param = $guest_id !== null ? $guest_id : '';
         $stmtCheck->execute([
-            'user_id' => $user_id ? $user_id : 0,
-            'guest_id' => $guest_id ? $guest_id : ''
+            'user_id' => $user_id_param,
+            'guest_id' => $guest_id_param
         ]);
-        $chatCount = $stmtCheck->fetch(PDO::FETCH_OBJ)->count;
+        $chatCount = $stmtCheck->fetch(PDO::FETCH_ASSOC)['count'];
 
         // Insert message into database
         $stmtInsert = $conn->prepare("INSERT INTO live_chat (user_id, guest_id, sender, message, date_sent, status) VALUES (:user_id, :guest_id, 'user', :message, NOW(), 0)");
@@ -124,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                                                                             <br /><br />
                                                                             <strong>User:</strong> {$investor_name}<br />
                                                                             <strong>Email:</strong> {$investor_email}<br />
-                                                                            <strong>Guest ID:</strong> {$guest_id ?: 'N/A'}<br />
+                                                                            <strong>Guest ID:</strong> {$guest_id}<br />
                                                                             <strong>Message:</strong> {$message}<br /><br />
                                                                             Please log in to the admin panel to respond to this chat.
                                                                         </span>
@@ -212,7 +218,7 @@ HTML;
 
                 // Content
                 $adminMail->isHTML(true);
-                $adminMail->Subject = "New Live Chat - {$settings->siteTitle}";
+                $adminMail->Subject = "New Live Chat Initiated - {$settings->siteTitle}";
                 $adminMail->Body = $admin_message;
 
                 $adminMail->send();
@@ -231,26 +237,20 @@ HTML;
 }
 
 // Fetch chat messages
-$stmt = $conn->prepare("SELECT * FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id) ORDER BY date_sent ASC");
-$stmt->execute([
-    'user_id' => $user_id ? $user_id : 0,
-    'guest_id' => $guest_id ? $guest_id : ''
+$stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id) ORDER BY date_sent ASC");
+$user_id_param = $user_id !== null ? $user_id : 0;
+$guest_id_param = $guest_id !== null ? $guest_id : '';
+$stmtQuery->execute([
+    'user_id' => $user_id_param,
+    'guest_id' => $guest_id_param
 ]);
-if ($stmt->rowCount()) {
-    $chatMessages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+if ($stmtQuery->rowCount()) {
+    $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
 }
 
 $pdo->close();
 ?>
 
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-    <title><?php echo htmlspecialchars($page_title); ?></title>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <meta name='description" content="<?php echo htmlspecialchars($page_description); ?>'>
-</head>
 <body class="dark-topbar">
     <!-- Left Sidenav -->
     <?php include('inc/sidebar.php'); ?>
@@ -258,7 +258,7 @@ $pdo->close();
 
     <div class="page-wrapper">
         <!-- Top Bar Start -->
-        <?php include('inc/topbar.php'); ?>
+        <?php include('inc/header.php'); ?>
         <!-- Top Bar End -->
 
         <!-- Page Content-->
@@ -274,7 +274,7 @@ $pdo->close();
                                 </div>
                                 <div class="col-auto align-self-center">
                                     <a href="#" class="btn btn-sm btn-outline-primary" id="Dash_Date">
-                                        <span class="day-name" id="Day_Name">Today:</span>&nbsp;&nbsp;
+                                        <span class="day-name" id="Day_Name">Today:</span> 
                                         <span class="" id="Select_date"><?php echo date('M d'); ?></span>
                                         <i data-feather="calendar" class="align-self-center icon-xs ml-1"></i>
                                     </a>
@@ -288,27 +288,25 @@ $pdo->close();
                 <!-- Display Success/Error Messages -->
                 <?php
                 if (isset($_SESSION['error'])) {
-                    ?>
-                    <div class='alert alert-danger border-0' role='alert'>
-                        <i class='la la-skull-crossbones alert-icon text-danger align-self-center font-30 mr-3'></i>
-                        <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                            <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></span></i>
-                        </button>
-                        <strong>Oh snap!</strong> <?php echo htmlspecialchars($_SESSION['error']); ?>
-                    </div>
-                    <?php
+                    echo "
+                        <div class='alert alert-danger border-0' role='alert'>
+                            <i class='la la-skull-crossbones alert-icon text-danger align-self-center font-30 mr-3'></i>
+                            <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                                <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
+                            </button>
+                            <strong>Oh snap!</strong> " . htmlspecialchars($_SESSION['error']) . "
+                        </div>";
                     unset($_SESSION['error']);
                 }
                 if (isset($_SESSION['success'])) {
-                    ?>
-                    <div class='alert alert-success border-0' role='alert'>
-                        <i class='mdi mdi-check-all alert-icon'></i>
-                        <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                            <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></span></i>
-                        </button>
-                        <strong>Success!</strong> <?php echo htmlspecialchars($_SESSION['success']); ?>
-                    </div>
-                    <?php
+                    echo "
+                        <div class='alert alert-success border-0' role='alert'>
+                            <i class='mdi mdi-check-all alert-icon'></i>
+                            <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                                <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
+                            </button>
+                            <strong>Well done!</strong> " . htmlspecialchars($_SESSION['success']) . "
+                        </div>";
                     unset($_SESSION['success']);
                 }
                 ?>
