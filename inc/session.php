@@ -100,6 +100,7 @@ if (isset($_SESSION['user'])) {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-decoration: none;
             transition: background-color 0.3s, transform 0.3s;
+            pointer-events: auto; /* Ensure the button is interactive */
         }
 
         .livechat-button:hover {
@@ -117,16 +118,20 @@ if (isset($_SESSION['user'])) {
             background-color: #333;
             color: #fff;
             text-align: center;
-            padding: 5px 10px;
+            padding: 8px 12px;
             border-radius: 6px;
             position: absolute;
-            z-index: 1001;
-            bottom: 80px; /* Position above the button */
-            right: 0;
+            z-index: 1001; /* Ensure tooltip is above other elements */
+            bottom: 70px; /* Position above the button */
+            right: 50%; /* Center horizontally relative to button */
+            transform: translateX(50%); /* Adjust for centering */
             white-space: nowrap;
             font-size: 14px;
+            font-family: Arial, sans-serif; /* Fallback font */
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.3s, visibility 0.3s;
+            /* Debug: Add border to make tooltip visible during testing */
+            border: 1px solid #fff;
         }
 
         .livechat-button:hover .tooltip {
@@ -148,7 +153,7 @@ if (isset($_SESSION['user'])) {
             }
 
             .livechat-button .tooltip {
-                bottom: 70px; /* Adjust tooltip position for smaller screens */
+                bottom: 60px; /* Adjust tooltip position for smaller screens */
                 font-size: 12px; /* Smaller font size for mobile */
             }
         }
@@ -161,7 +166,7 @@ if (isset($_SESSION['user'])) {
     $current_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     if ($current_page !== 'livechat.php' && !str_ends_with($current_path, '/accounts/livechat.php')) {
     ?>
-        <a href="livechat.php" class="livechat-button" title="Open Live Chat">
+        <a href="livechat.php" class="livechat-button">
             <i class="fas fa-headset"></i>
             <span class="tooltip">Need Help?</span>
         </a>
