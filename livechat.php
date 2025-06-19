@@ -1,11 +1,11 @@
 <?php
-include('../inc/config.php');
-include('../admin/includes/format.php');
-include('../inc/session.php');
+include('inc/config.php');
+include('admin/includes/format.php');
+include('inc/session.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-require '../vendor/autoload.php'; // PHPMailer dependency
+require 'vendor/autoload.php'; // PHPMailer dependency
 
 $page_name = 'Live Chat';
 $page_parent = '';
