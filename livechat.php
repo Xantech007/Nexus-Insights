@@ -20,8 +20,10 @@ $guest_id = null;
 $investor_name = 'Guest';
 $investor_email = 'N/A';
 
-// Check if user is logged in
+// Open database connection
 $conn = $pdo->open();
+
+// Check if user is logged in
 if (isset($_SESSION['user'])) {
     $user_id = $_SESSION['user'];
     try {
@@ -57,8 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $message = trim($_POST['message']);
     if (!empty($message)) {
         // Check if this is the first message in the chat
-        $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM live_chat WHERE (user_id = ? OR guest_id = ?) AND (user_id IS NOT NULL OR guest_id IS NOT NULL)");
-        $stmtCheck->execute([$user_id ?: 0, $guest_id ?: '']);
+        $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id)");
+        $stmtCheck->execute(['user_id' => $user_id ?: 0, 'guest_id' => $guest_id ?: '']);
         $chatCount = $stmtCheck->fetch(PDO::FETCH_OBJ)->count;
 
         // Insert message into database
@@ -226,8 +228,8 @@ HTML;
 }
 
 // Fetch chat messages
-$stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE (user_id = ? OR guest_id = ?) AND (user_id IS NOT NULL OR guest_id IS NOT NULL) ORDER BY date_sent ASC");
-$stmtQuery->execute([$user_id ?: 0, $guest_id ?: '']);
+$stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id) ORDER BY date_sent ASC");
+$stmtQuery->execute(['user_id' => $user_id ?: 0, 'guest_id' => $guest_id ?: '']);
 if ($stmtQuery->rowCount()) {
     $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_OBJ);
 }
