@@ -111,44 +111,27 @@ if (isset($_SESSION['user'])) {
             font-size: 30px; /* Adjust icon size */
         }
 
-        /* Tooltip for "Need Help" pop-up */
-        .livechat-button {
-            position: relative; /* Needed for tooltip positioning */
-        }
-
-        .livechat-button::before {
-            content: 'Need Help?'; /* Tooltip text */
+        /* Tooltip Styling */
+        .livechat-button .tooltip {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 6px;
             position: absolute;
-            bottom: 70px; /* Position above the button */
-            right: 50%;
-            transform: translateX(50%); /* Center horizontally */
-            background-color: #333; /* Dark background for tooltip */
-            color: #fff; /* White text */
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 14px;
+            z-index: 1001;
+            bottom: 80px; /* Position above the button */
+            right: 0;
             white-space: nowrap;
-            opacity: 0; /* Hidden by default */
-            transition: opacity 0.3s ease;
-            z-index: 1001; /* Ensure tooltip is above other elements */
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
-        .livechat-button::after {
-            content: '';
-            position: absolute;
-            bottom: 62px; /* Position below the tooltip */
-            right: 50%;
-            transform: translateX(50%);
-            border-width: 6px;
-            border-style: solid;
-            border-color: #333 transparent transparent transparent; /* Triangle pointing down */
-            opacity: 0; /* Hidden by default */
-            transition: opacity 0.3s ease;
-        }
-
-        .livechat-button:hover::before,
-        .livechat-button:hover::after {
-            opacity: 1; /* Show tooltip on hover */
+        .livechat-button:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
         /* Responsive design for smaller screens */
@@ -164,15 +147,9 @@ if (isset($_SESSION['user'])) {
                 font-size: 25px; /* Adjust icon size for smaller screens */
             }
 
-            .livechat-button::before {
-                font-size: 12px; /* Smaller text on mobile */
-                padding: 6px 10px;
-                bottom: 60px; /* Adjust position for smaller button */
-            }
-
-            .livechat-button::after {
-                bottom: 54px; /* Adjust triangle position */
-                border-width: 5px; /* Smaller triangle */
+            .livechat-button .tooltip {
+                bottom: 70px; /* Adjust tooltip position for smaller screens */
+                font-size: 12px; /* Smaller font size for mobile */
             }
         }
     </style>
@@ -186,6 +163,7 @@ if (isset($_SESSION['user'])) {
     ?>
         <a href="livechat.php" class="livechat-button" title="Open Live Chat">
             <i class="fas fa-headset"></i>
+            <span class="tooltip">Need Help?</span>
         </a>
     <?php } ?>
 </body>
