@@ -25,8 +25,23 @@
       <li><a href="investment_plans.php"><i class="fa fa-edit"></i> <span>Investment Plans</span></a></li>
       <li><a href="investments.php"><i class="fa fa-handshake-o"></i> <span>Investments</span></a></li>
       <li><a href="payment_methods.php"><i class="fa fa-credit-card"></i> <span>Payment Methods</span></a></li>
-      <li><a href="livechat.php"><i class="fas fa-headset"></i> <span>Livechat</span></a></li> <!-- Livechat with corrected icon class -->
+      <li><a href="livechat.php"><i class="fa fa-headset"></i> <span>Livechat</span></a></li> <!-- New Livechat entry -->
+
+      <li class="treeview">
+        <a href="#">
+          <i class="fa fa-barcode"></i>
+          <span>Website Info</span>
+          <span class="pull-right-container">
+            <i class="fa fa-angle-left pull-right"></i>
+          </span>
+        </a>
+        <ul class="treeview-menu">
+          <li><a href="news.php"><i class="fa fa-paperclip"></i> <span>News</span></a></li>
+          <li><a href="hp_deposits.php"><i class="fa fa-bitcoin"></i> <span>Latest Deposits</span></a></li>
+          <li><a href="hp_withdrawals.php"><i class="fa fa-money"></i> <span>Latest Withdrawals</span></a></li>
+        </ul>
+      </li>
     </ul>
   </section>
   <!-- /.sidebar -->
-</aside>
+                                                            </aside>
