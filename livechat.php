@@ -1,9 +1,16 @@
 <?php
+// Start output buffering to capture any unintended output
+ob_start();
+
 // Enable error reporting for debugging (remove in production)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Start session
+session_start();
+
+// Include dependencies
 include('init.php');
 include('admin/includes/format.php');
 
@@ -17,21 +24,10 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
-// Page metadata
-$page_name = 'Live Chat';
-$page_parent = '';
-$page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
-$page_description = $settings->siteTitle . ' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
-
-include('inc/head.php');
-
 // Initialize variables for guest
 $guest_id = null;
 $investor_name = 'Guest';
 $investor_email = 'N/A';
-
-// Open database connection
-$conn = $pdo->open();
 
 // Assign guest ID
 if (!isset($_COOKIE['guest_id'])) {
@@ -40,6 +36,9 @@ if (!isset($_COOKIE['guest_id'])) {
 } else {
     $guest_id = $_COOKIE['guest_id'];
 }
+
+// Open database connection
+$conn = $pdo->open();
 
 // Handle new message submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
@@ -212,7 +211,8 @@ HTML;
         }
 
         $_SESSION['success'] = "Message sent successfully!";
-        header('location: livechat.php');
+        $pdo->close();
+        header('Location: livechat.php');
         exit;
     } else {
         $_SESSION['error'] = "Message cannot be empty.";
@@ -225,9 +225,23 @@ $stmtQuery->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
 $stmtQuery->execute();
 if ($stmtQuery->rowCount()) {
     $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $chatMessages = [];
 }
 
 $pdo->close();
+
+// Page metadata
+$page_name = 'Live Chat';
+$page_parent = '';
+$page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
+$page_description = $settings->siteTitle . ' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
+
+// Now include head.php and output HTML
+include('inc/head.php');
+
+// Flush output buffer
+ob_end_flush();
 ?>
 
 <body>
