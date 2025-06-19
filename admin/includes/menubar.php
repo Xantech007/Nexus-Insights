@@ -25,7 +25,7 @@
       <li><a href="investment_plans.php"><i class="fa fa-edit"></i> <span>Investment Plans</span></a></li>
       <li><a href="investments.php"><i class="fa fa-handshake-o"></i> <span>Investments</span></a></li>
       <li><a href="payment_methods.php"><i class="fa fa-credit-card"></i> <span>Payment Methods</span></a></li>
-      <li><a href="livechat.php"><i class="fa-solid fa-headset"></i> <span>Livechat</span></a></li> <!-- New Livechat entry -->
+      <li><a href="livechat.php"><i class="fas fa-headset"></i> <span>Livechat</span></a></li> <!-- New Livechat entry -->
 
       <li class="treeview">
         <a href="#">
