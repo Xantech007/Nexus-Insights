@@ -211,8 +211,7 @@ HTML;
             }
         }
 
-        $_SESSION['success'] = "Message sent successfully!";
-        header('location: livechat.php');
+        $_SESSION['success'] = "Message sent";
         exit;
     } else {
         $_SESSION['error'] = "Message cannot be empty.";
