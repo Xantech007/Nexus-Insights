@@ -76,3 +76,67 @@ if (isset($_SESSION['user'])) {
     }
 }
 ?>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Floating Live Chat Button Styling */
+        .livechat-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: #4CAF50; /* Green background */
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+            font-size: 24px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .livechat-button:hover {
+            background-color: #45a049; /* Darker green on hover */
+            transform: scale(1.1); /* Slight zoom effect */
+        }
+
+        .livechat-button img {
+            width: 30px;
+            height: 30px;
+        }
+
+        /* Responsive design for smaller screens */
+        @media (max-width: 768px) {
+            .livechat-button {
+                width: 50px;
+                height: 50px;
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .livechat-button img {
+                width: 25px;
+                height: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Live Chat Button -->
+    <a href="livechat.php" class="livechat-button" title="Open Live Chat">
+        <!-- You can use an icon (e.g., a chat bubble image or Font Awesome icon) -->
+        <img src="path/to/chat-icon.png" alt="Chat Icon">
+        <!-- Alternatively, use a text symbol if no image is available -->
+        <!-- 💬 -->
+    </a>
+</body>
+    </html>
