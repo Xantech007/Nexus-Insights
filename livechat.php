@@ -60,7 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     if (!empty($message)) {
         // Check if this is the first message in the chat
         $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id)");
-        $stmtCheck->execute(['user_id' => $user_id ?: 0, 'guest_id' => $guest_id ?: '']);
+        $stmtCheck->execute([
+            'user_id' => $user_id ? $user_id : 0,
+            'guest_id' => $guest_id ? $guest_id : ''
+        ]);
         $chatCount = $stmtCheck->fetch(PDO::FETCH_OBJ)->count;
 
         // Insert message into database
@@ -209,7 +212,7 @@ HTML;
 
                 // Content
                 $adminMail->isHTML(true);
-                $adminMail->Subject = "New Live Chat Initiated - {$settings->siteTitle}";
+                $adminMail->Subject = "New Live Chat - {$settings->siteTitle}";
                 $adminMail->Body = $admin_message;
 
                 $adminMail->send();
@@ -228,15 +231,26 @@ HTML;
 }
 
 // Fetch chat messages
-$stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id) ORDER BY date_sent ASC");
-$stmtQuery->execute(['user_id' => $user_id ?: 0, 'guest_id' => $guest_id ?: '']);
-if ($stmtQuery->rowCount()) {
-    $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_OBJ);
+$stmt = $conn->prepare("SELECT * FROM live_chat WHERE (user_id = :user_id OR guest_id = :guest_id) ORDER BY date_sent ASC");
+$stmt->execute([
+    'user_id' => $user_id ? $user_id : 0,
+    'guest_id' => $guest_id ? $guest_id : ''
+]);
+if ($stmt->rowCount()) {
+    $chatMessages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 $pdo->close();
 ?>
 
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <title><?php echo htmlspecialchars($page_title); ?></title>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <meta name='description" content="<?php echo htmlspecialchars($page_description); ?>'>
+</head>
 <body class="dark-topbar">
     <!-- Left Sidenav -->
     <?php include('inc/sidebar.php'); ?>
@@ -244,7 +258,7 @@ $pdo->close();
 
     <div class="page-wrapper">
         <!-- Top Bar Start -->
-        <?php include('inc/header.php'); ?>
+        <?php include('inc/topbar.php'); ?>
         <!-- Top Bar End -->
 
         <!-- Page Content-->
@@ -260,7 +274,7 @@ $pdo->close();
                                 </div>
                                 <div class="col-auto align-self-center">
                                     <a href="#" class="btn btn-sm btn-outline-primary" id="Dash_Date">
-                                        <span class="day-name" id="Day_Name">Today:</span> 
+                                        <span class="day-name" id="Day_Name">Today:</span>&nbsp;&nbsp;
                                         <span class="" id="Select_date"><?php echo date('M d'); ?></span>
                                         <i data-feather="calendar" class="align-self-center icon-xs ml-1"></i>
                                     </a>
@@ -274,25 +288,27 @@ $pdo->close();
                 <!-- Display Success/Error Messages -->
                 <?php
                 if (isset($_SESSION['error'])) {
-                    echo "
-                        <div class='alert alert-danger border-0' role='alert'>
-                            <i class='la la-skull-crossbones alert-icon text-danger align-self-center font-30 mr-3'></i>
-                            <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                                <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
-                            </button>
-                            <strong>Oh snap!</strong> " . $_SESSION['error'] . "
-                        </div>";
+                    ?>
+                    <div class='alert alert-danger border-0' role='alert'>
+                        <i class='la la-skull-crossbones alert-icon text-danger align-self-center font-30 mr-3'></i>
+                        <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                            <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></span></i>
+                        </button>
+                        <strong>Oh snap!</strong> <?php echo htmlspecialchars($_SESSION['error']); ?>
+                    </div>
+                    <?php
                     unset($_SESSION['error']);
                 }
                 if (isset($_SESSION['success'])) {
-                    echo "
-                        <div class='alert alert-success border-0' role='alert'>
-                            <i class='mdi mdi-check-all alert-icon'></i>
-                            <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                                <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
-                            </button>
-                            <strong>Well done!</strong> " . $_SESSION['success'] . "
-                        </div>";
+                    ?>
+                    <div class='alert alert-success border-0' role='alert'>
+                        <i class='mdi mdi-check-all alert-icon'></i>
+                        <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                            <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></span></i>
+                        </button>
+                        <strong>Success!</strong> <?php echo htmlspecialchars($_SESSION['success']); ?>
+                    </div>
+                    <?php
                     unset($_SESSION['success']);
                 }
                 ?>
@@ -305,10 +321,10 @@ $pdo->close();
                                 <div class="chat-box" style="max-height: 400px; overflow-y: auto;">
                                     <?php if (!empty($chatMessages)) : ?>
                                         <?php foreach ($chatMessages as $msg) : ?>
-                                            <div class="chat-message mb-3 <?php echo $msg->sender === 'user' ? 'text-right' : 'text-left'; ?>">
-                                                <div class="card p-2 d-inline-block <?php echo $msg->sender === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
-                                                    <p class="mb-1"><?php echo htmlspecialchars($msg->message); ?></p>
-                                                    <small class="text-muted"><?php echo $msg->date_sent; ?> - <?php echo $msg->sender === 'user' ? ($user_id ? 'You' : 'Guest') : 'Admin'; ?></small>
+                                            <div class="chat-message mb-3 <?php echo $msg['sender'] === 'user' ? 'text-right' : 'text-left'; ?>">
+                                                <div class="card p-2 d-inline-block <?php echo $msg['sender'] === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
+                                                    <p class="mb-1"><?php echo htmlspecialchars($msg['message']); ?></p>
+                                                    <small class="text-muted"><?php echo $msg['date_sent']; ?> - <?php echo $msg['sender'] === 'user' ? ($user_id ? 'You' : 'Guest') : 'Admin'; ?></small>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
