@@ -257,17 +257,18 @@ include('inc/head.php');
 .chat-box .btn-primary {
     background-color: #cca354;
     border-color: #cca354;
-    color: #000000;
+    color: #ffffff;
     padding: 10px 20px;
     border-radius: 3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .chat-box .btn-primary:hover,
 .chat-box .btn-primary:focus {
     background-color: #b78b36;
     border-color: #b78b36;
-    color: #000000;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
-/* Chat message styles */
 .chat-box .chat-body {
     max-height: 400px;
     overflow-y: auto;
@@ -284,10 +285,11 @@ include('inc/head.php');
     max-width: 80%;
 }
 .chat-box .message.sent {
-    background-color: #cca354;
-    color: #000000;
+    background-color: #b78b36;
+    color: #ffffff;
     margin-left: auto;
     text-align: right;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .chat-box .message.received {
     background-color: #343A40;
