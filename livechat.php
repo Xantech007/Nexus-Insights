@@ -31,34 +31,39 @@ $conn = $pdo->open();
 // Assign or validate guest ID
 if (!isset($_COOKIE['guest_id']) || empty($_COOKIE['guest_id']) || !preg_match('/^[a-f0-9]{32}$/', $_COOKIE['guest_id'])) {
     $guest_id = bin2hex(random_bytes(16)); // 32-character unique ID
-    setcookie('guest_id', $guest_id, time() + (365 * 24 * 60 * 60), "/", "", true, true); // 1-year cookie, Secure, HttpOnly
+    setcookie('guest_id', $guest_id, time() + (30 * 24 * 60 * 60), "/", "", true, true); // 30-day cookie, Secure, HttpOnly
+    error_log("New Guest ID generated: $guest_id", 3, __DIR__ . "/debug_log.txt");
 } else {
     $guest_id = $_COOKIE['guest_id'];
+    error_log("Existing Guest ID used: $guest_id", 3, __DIR__ . "/debug_log.txt");
 }
 
 // Handle new message submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $message = trim($_POST['message']);
     if (!empty($message)) {
-        // Check if this is the first message in the chat
-        $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM guest_live_chat WHERE guest_id = :guest_id");
-        $stmtCheck->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
-        $stmtCheck->execute();
-        $chatCount = $stmtCheck->fetch(PDO::FETCH_ASSOC)['count'];
+        try {
+            // Check if this is the first message in the chat
+            $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM guest_live_chat WHERE guest_id = :guest_id");
+            $stmtCheck->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
+            $stmtCheck->execute();
+            $chatCount = $stmtCheck->fetch(PDO::FETCH_ASSOC)['count'];
+            error_log("Chat count for Guest ID $guest_id: $chatCount", 3, __DIR__ . "/debug_log.txt");
 
-        // Insert message into database
-        $stmtInsert = $conn->prepare("INSERT INTO guest_live_chat (guest_id, sender, message, date_sent, status) VALUES (:guest_id, 'user', :message, NOW(), 0)");
-        $stmtInsert->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
-        $stmtInsert->bindParam(':message', $message, PDO::PARAM_STR);
-        $stmtInsert->execute();
+            // Insert message into database
+            $stmtInsert = $conn->prepare("INSERT INTO guest_live_chat (guest_id, sender, message, date_sent, status) VALUES (:guest_id, 'user', :message, NOW(), 0)");
+            $stmtInsert->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
+            $stmtInsert->bindParam(':message', $message, PDO::PARAM_STR);
+            $stmtInsert->execute();
+            error_log("Message inserted for Guest ID $guest_id: $message", 3, __DIR__ . "/debug_log.txt");
 
-        // If this is the first message, send email to admin
-        if ($chatCount == 0) {
-            $sweet_url = isset($sweet_url) ? $sweet_url : 'nexusinsights.it.com'; // Fallback URL
-            $year = date('Y');
+            // If this is the first message, send email to admin
+            if ($chatCount == 0) {
+                $sweet_url = isset($sweet_url) ? $sweet_url : 'nexusinsights.it.com'; // Fallback URL
+                $year = date('Y');
 
-            // Email template for admin
-            $admin_message = <<<HTML
+                // Email template for admin
+                $admin_message = <<<HTML
 <div style='font-family: Helvetica Neue, Helvetica, Roboto, Arial, sans-serif; direction: ltr; background-color: #f3f2f1; margin: 0; padding: 0;'>
     <table class='main' border='0' width='100%' cellspacing='0' cellpadding='0' bgcolor='#F3F2F1'>
         <tbody>
@@ -178,49 +183,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
 </div>
 HTML;
 
-            $adminMail = new PHPMailer(true);
-            try {
-                // Server settings
-                $adminMail->isSMTP();
-                $adminMail->Host = $smtpConfig['host'];
-                $adminMail->SMTPAuth = true;
-                $adminMail->Username = $smtpConfig['username'];
-                $adminMail->Password = $smtpConfig['password'];
-                $adminMail->SMTPSecure = $smtpConfig['secure'];
-                $adminMail->Port = $smtpConfig['port'];
+                $adminMail = new PHPMailer(true);
+                try {
+                    // Server settings
+                    $adminMail->isSMTP();
+                    $adminMail->Host = $smtpConfig['host'];
+                    $adminMail->SMTPAuth = true;
+                    $adminMail->Username = $smtpConfig['username'];
+                    $adminMail->Password = $smtpConfig['password'];
+                    $adminMail->SMTPSecure = $smtpConfig['secure'];
+                    $adminMail->Port = $smtpConfig['port'];
 
-                // Recipients
-                $adminMail->setFrom($smtpConfig['fromEmail'], $smtpConfig['fromName']);
-                $adminMail->addAddress($settings->email2, 'Livechat Agent');
+                    // Recipients
+                    $adminMail->setFrom($smtpConfig['fromEmail'], $smtpConfig['fromName']);
+                    $adminMail->addAddress($settings->email2, 'Livechat Agent');
 
-                // Content
-                $adminMail->isHTML(true);
-                $adminMail->Subject = "New Live Chat Initiated - {$settings->siteTitle}";
-                $adminMail->Body = $admin_message;
+                    // Content
+                    $adminMail->isHTML(true);
+                    $adminMail->Subject = "New Live Chat Initiated - {$settings->siteTitle}";
+                    $adminMail->Body = $admin_message;
 
-                $adminMail->send();
-            } catch (Exception $e) {
-                error_log("PHPMailer error in admin notification: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
-                $_SESSION['error'] = "Failed to send email notification: {$e->getMessage()}";
+                    $adminMail->send();
+                    error_log("Email notification sent for Guest ID $guest_id", 3, __DIR__ . "/debug_log.txt");
+                } catch (Exception $e) {
+                    error_log("PHPMailer error for Guest ID $guest_id: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
+                    $_SESSION['error'] = "Failed to send email notification.";
+                }
             }
-        }
 
-        $_SESSION['success'] = "Message sent successfully!";
-        header('location: livechat.php');
-        exit;
+            $_SESSION['success'] = "Message sent successfully!";
+            header('location: livechat.php');
+            exit;
+        } catch (PDOException $e) {
+            error_log("Database error for Guest ID $guest_id: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
+            $_SESSION['error'] = "Failed to send message due to a database error.";
+        }
     } else {
         $_SESSION['error'] = "Message cannot be empty.";
     }
 }
 
 // Fetch chat messages
-$stmtQuery = $conn->prepare("SELECT * FROM guest_live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
-$stmtQuery->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
-$stmtQuery->execute();
-$chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmtQuery = $conn->prepare("SELECT id, guest_id, sender, message, date_sent, status FROM guest_live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
+    $stmtQuery->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
+    $stmtQuery->execute();
+    $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
+    error_log("Guest ID: $guest_id, Messages retrieved: " . count($chatMessages), 3, __DIR__ . "/debug_log.txt");
 
-// Debug: Log the number of messages retrieved
-error_log("Guest ID: $guest_id, Messages retrieved: " . count($chatMessages), 3, __DIR__ . "/debug_log.txt");
+    // Log message details for debugging
+    foreach ($chatMessages as $msg) {
+        error_log("Message ID: {$msg['id']}, Sender: {$msg['sender']}, Message: {$msg['message']}, Date: {$msg['date_sent']}", 3, __DIR__ . "/debug_log.txt");
+    }
+} catch (PDOException $e) {
+    error_log("Query error for Guest ID $guest_id: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
+    $chatMessages = [];
+    $_SESSION['error'] = "Failed to load messages due to a database error.";
+}
 
 $pdo->close();
 
@@ -299,8 +318,8 @@ include('inc/head.php');
                                         <?php foreach ($chatMessages as $msg) : ?>
                                             <div class="chat-message mb-3 <?= $msg['sender'] === 'user' ? 'text-right' : 'text-left'; ?>">
                                                 <div class="card p-2 d-inline-block <?= $msg['sender'] === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
-                                                    <p class="mb-1"><?= htmlspecialchars($msg['message']); ?></p>
-                                                    <small class="text-muted"><?= $msg['date_sent']; ?> - <?= $msg['sender'] === 'user' ? 'Guest' : 'Livechat Agent'; ?></small>
+                                                    <p class="mb-1"><?= htmlspecialchars($msg['message']) ?></p>
+                                                    <small class="text-muted"><?= htmlspecialchars($msg['date_sent']) ?> - <?= $msg['sender'] === 'user' ? 'Guest' : 'Livechat Agent'; ?></small>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
