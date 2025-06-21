@@ -359,7 +359,7 @@ include('inc/head.php');
                                 <?php else: ?>
                                     <?php foreach ($messages as $msg): ?>
                                         <div class="message <?= $msg->sender === 'user' ? 'sent' : 'received' ?>">
-                                            <p><strong><?= $msg->sender === 'user' ? 'You' : 'Support' ?>:</strong> <?= htmlspecialchars($msg->message) ?></p>
+                                            <p><strong><?= $msg->sender === 'user' ? 'You' : 'Livechat Agent' ?>:</strong> <?= htmlspecialchars($msg->message) ?></p>
                                             <small><?= date('M d, Y H:i', strtotime($msg->date_sent)) ?></small>
                                         </div>
                                     <?php endforeach; ?>
