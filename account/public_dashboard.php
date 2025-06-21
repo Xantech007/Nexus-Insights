@@ -1,6 +1,5 @@
 <?php
     // Includes from the dashboard code
-    include_once('../inc/config.php');
     include_once('../inc/conn.php')
     include_once('../admin/includes/format.php');
 
