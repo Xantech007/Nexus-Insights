@@ -267,6 +267,50 @@ include('inc/head.php');
     border-color: #b78b36;
     color: #000000;
 }
+/* Chat message styles */
+.chat-box .chat-body {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #000000;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(204, 163, 84, 0.3);
+}
+.chat-box .message {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    max-width: 80%;
+}
+.chat-box .message.sent {
+    background-color: #cca354;
+    color: #000000;
+    margin-left: auto;
+    text-align: right;
+}
+.chat-box .message.received {
+    background-color: #343A40;
+    color: #ffffff;
+    margin-right: auto;
+    text-align: left;
+}
+.chat-box .message p {
+    margin: 0;
+    font-size: 14px;
+}
+.chat-box .message small {
+    display: block;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 5px;
+}
+.chat-box .no-messages {
+    color: #ffffff;
+    text-align: center;
+    font-size: 16px;
+    padding: 20px;
+}
 </style>
 
 <body>
@@ -310,12 +354,16 @@ include('inc/head.php');
                                 <p>Our support team is here to assist you. Ask any questions!</p>
                             </div>
                             <div class="chat-body">
-                                <?php foreach ($messages as $msg): ?>
-                                    <div class="message <?= $msg->sender === 'user' ? 'sent' : 'received' ?>">
-                                        <p><strong><?= $msg->sender === 'user' ? 'You' : 'Support' ?>:</strong> <?= htmlspecialchars($msg->message) ?></p>
-                                        <small><?= date('M d, Y H:i', strtotime($msg->date_sent)) ?></small>
-                                    </div>
-                                <?php endforeach; ?>
+                                <?php if (empty($messages)): ?>
+                                    <p class="no-messages">No messages yet. Start the conversation!</p>
+                                <?php else: ?>
+                                    <?php foreach ($messages as $msg): ?>
+                                        <div class="message <?= $msg->sender === 'user' ? 'sent' : 'received' ?>">
+                                            <p><strong><?= $msg->sender === 'user' ? 'You' : 'Support' ?>:</strong> <?= htmlspecialchars($msg->message) ?></p>
+                                            <small><?= date('M d, Y H:i', strtotime($msg->date_sent)) ?></small>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </div>
                             <form method="POST" action="">
                                 <div class="input-group mt-3">
