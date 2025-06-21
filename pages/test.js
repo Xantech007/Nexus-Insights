@@ -1,5 +1,5 @@
 import React from 'react'
-import { signIn, getSession } from "customers/react";
+import { signIn, getSession } from "customer/react";
 import ProfileComponent from '../components/customers/ProfileComponent';
 import Layout from '../components/ui/Layout'
 
