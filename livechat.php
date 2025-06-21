@@ -352,11 +352,6 @@ include('inc/head.php');
                             <?php unset($_SESSION['success']); ?>
                         <?php endif; ?>
 
-                        <!-- Debug Output -->
-                        <div class="alert alert-info">
-                            <strong>Debug Info:</strong> Guest ID: <?= htmlspecialchars($guest_id) ?>, Messages Loaded: <?= count($chatMessages) ?>
-                        </div>
-
                         <div class="card">
                             <div class="card-body">
                                 <!-- Chat Messages -->
@@ -364,7 +359,7 @@ include('inc/head.php');
                                     <?php if (!empty($chatMessages)) : ?>
                                         <?php foreach ($chatMessages as $msg) : ?>
                                             <div class="chat-message mb-3 <?= $msg['sender'] === 'user' ? 'text-right' : 'text-left'; ?>">
-                                                <div class="card p-2 d-inline-block <?= $msg['sender'] === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
+                                                <div class="card p-2 d-inline-block <?= $msg['sender'] === 'user' ? 'bg-light text-black' : 'bg-primary text-black'; ?>">
                                                     <p class="mb-1"><?= htmlspecialchars($msg['message']) ?></p>
                                                     <small class="text-muted"><?= htmlspecialchars($msg['date_sent']) ?> - <?= $msg['sender'] === 'user' ? 'Guest' : 'Livechat Agent'; ?></small>
                                                 </div>
