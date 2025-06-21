@@ -4,7 +4,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Start output buffering to capture any unintended output
+// Start output buffering to prevent headers-already-sent issues
 ob_start();
 
 include('init.php');
@@ -14,8 +14,12 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 require 'vendor/autoload.php'; // PHPMailer dependency
 
+// Log script start
+error_log("guestchat.php loaded at " . date('Y-m-d H:i:s'), 3, __DIR__ . "/debug_log.txt");
+
 // Check if user is logged in
 if (isset($_SESSION['user'])) {
+    error_log("User logged in, redirecting to account/livechat.php", 3, __DIR__ . "/debug_log.txt");
     header('Location: account/livechat.php');
     exit;
 }
@@ -26,7 +30,13 @@ $investor_name = 'Guest';
 $investor_email = 'N/A';
 
 // Open database connection
-$conn = $pdo->open();
+try {
+    $conn = $pdo->open();
+    error_log("Database connection opened", 3, __DIR__ . "/debug_log.txt");
+} catch (Exception $e) {
+    error_log("Database connection error: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
+    die("Database connection failed. Please try again later.");
+}
 
 // Assign or validate guest ID
 if (!isset($_COOKIE['guest_id']) || empty($_COOKIE['guest_id']) || !preg_match('/^[a-f0-9]{32}$/', $_COOKIE['guest_id'])) {
@@ -41,6 +51,8 @@ if (!isset($_COOKIE['guest_id']) || empty($_COOKIE['guest_id']) || !preg_match('
 // Handle new message submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $message = trim($_POST['message']);
+    error_log("POST request received, message: $message", 3, __DIR__ . "/debug_log.txt");
+
     if (!empty($message)) {
         try {
             // Check if this is the first message in the chat
@@ -200,19 +212,20 @@ HTML;
 
                     // Content
                     $adminMail->isHTML(true);
-                    $adminMail->Subject = "New Live Chat Initiated - {$settings->siteTitle}";
+                    $adminMail->Subject = "New Guest Chat Initiated - {$settings->siteTitle}";
                     $adminMail->Body = $admin_message;
 
                     $adminMail->send();
                     error_log("Email notification sent for Guest ID $guest_id", 3, __DIR__ . "/debug_log.txt");
                 } catch (Exception $e) {
                     error_log("PHPMailer error for Guest ID $guest_id: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
-                    $_SESSION['error'] = "Failed to send email notification.";
+                    $_SESSION['error'] = "Message sent, but failed to notify admin.";
                 }
             }
 
             $_SESSION['success'] = "Message sent successfully!";
-            header('location: livechat.php');
+            error_log("Success message set for Guest ID $guest_id, redirecting", 3, __DIR__ . "/debug_log.txt");
+            header('Location: guestchat.php');
             exit;
         } catch (PDOException $e) {
             error_log("Database error for Guest ID $guest_id: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
@@ -220,6 +233,7 @@ HTML;
         }
     } else {
         $_SESSION['error'] = "Message cannot be empty.";
+        error_log("Empty message submitted for Guest ID $guest_id", 3, __DIR__ . "/debug_log.txt");
     }
 }
 
@@ -231,7 +245,7 @@ try {
     $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
     error_log("Guest ID: $guest_id, Messages retrieved: " . count($chatMessages), 3, __DIR__ . "/debug_log.txt");
 
-    // Log message details for debugging
+    // Log message details
     foreach ($chatMessages as $msg) {
         error_log("Message ID: {$msg['id']}, Sender: {$msg['sender']}, Message: {$msg['message']}, Date: {$msg['date_sent']}", 3, __DIR__ . "/debug_log.txt");
     }
@@ -242,9 +256,10 @@ try {
 }
 
 $pdo->close();
+error_log("Database connection closed", 3, __DIR__ . "/debug_log.txt");
 
 // Page metadata for head.php
-$page_name = 'Live Chat';
+$page_name = 'Guest Chat';
 $page_parent = '';
 $page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
 $page_description = $settings->siteTitle . ' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
@@ -272,10 +287,10 @@ include('inc/head.php');
             <div class="container">
                 <div class="row">
                     <div class="col-lg-6">
-                        <h2 class="page-title">Live Chat</h2>
+                        <h2 class="page-title">Guest Chat</h2>
                         <ul class="page-breadcrumb">
                             <li><a href="<?= $baseurl ?>">Home</a></li>
-                            <li>Live Chat</li>
+                            <li>Guest Chat</li>
                         </ul>
                     </div>
                 </div>
@@ -309,6 +324,11 @@ include('inc/head.php');
                             </div>
                             <?php unset($_SESSION['success']); ?>
                         <?php endif; ?>
+
+                        <!-- Debug Output for Testing -->
+                        <div class="alert alert-info">
+                            <strong>Debug Info:</strong> Guest ID: <?= htmlspecialchars($guest_id) ?>, Messages Loaded: <?= count($chatMessages) ?>
+                        </div>
 
                         <div class="card">
                             <div class="card-body">
