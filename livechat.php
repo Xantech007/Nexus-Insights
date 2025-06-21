@@ -41,15 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
     $message = trim($_POST['message']);
     if (!empty($message)) {
         // Check if this is the first message in the chat
-        $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM live_chat WHERE guest_id = :guest_id");
+        $stmtCheck = $conn->prepare("SELECT COUNT(*) as count FROM guest_live_chat WHERE guest_id = :guest_id");
         $stmtCheck->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
         $stmtCheck->execute();
         $chatCount = $stmtCheck->fetch(PDO::FETCH_ASSOC)['count'];
 
         // Insert message into database
-        $stmtInsert = $conn->prepare("INSERT INTO live_chat (user_id, guest_id, sender, message, date_sent, status) VALUES (:user_id, :guest_id, 'user', :message, NOW(), 0)");
-        $user_id = 0; // Always 0 for guests
-        $stmtInsert->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmtInsert = $conn->prepare("INSERT INTO guest_live_chat (guest_id, sender, message, date_sent, status) VALUES (:guest_id, 'user', :message, NOW(), 0)");
         $stmtInsert->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
         $stmtInsert->bindParam(':message', $message, PDO::PARAM_STR);
         $stmtInsert->execute();
@@ -216,7 +214,7 @@ HTML;
 }
 
 // Fetch chat messages
-$stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
+$stmtQuery = $conn->prepare("SELECT * FROM guest_live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
 $stmtQuery->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
 $stmtQuery->execute();
 $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
