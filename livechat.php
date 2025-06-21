@@ -236,6 +236,30 @@ $page_description = $settings->siteTitle . ' provides quality infrastructure bac
 include('inc/head.php');
 ?>
 
+<style>
+/* Custom styles for chat input and button */
+.chat-box .form-control {
+    border-color: #085ff7;
+    box-shadow: none;
+}
+.chat-box .form-control:focus {
+    border-color: #085ff7;
+    box-shadow: 0 0 0 0.2rem rgba(8, 95, 247, 0.25);
+}
+.chat-box .btn-primary {
+    background-color: #085ff7;
+    border-color: #085ff7;
+    color: #ffffff;
+}
+.chat-box .btn-primary:hover,
+.chat-box .btn-primary:focus,
+.chat-box .btn-primary:active {
+    background-color: #064ac6;
+    border-color: #064ac6;
+    color: #ffffff;
+}
+</style>
+
 <body>
     <!-- scroll-to-top start -->
     <?php include('inc/scroll-to-top.php'); ?>  
