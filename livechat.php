@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                                             <tr>
                                                 <td style='font-size: 12px; line-height: 16px; color: #4b4b4b; padding: 20px 0; margin: 0 auto;' align='center'>
                                                     *This email account is not monitored. Reply to <a href='mailto:{$settings->email2}'>{$settings->email2}</a> if you have any query.
-                                                    <a style='text-decoration: underline; color: #085ff7;' href='https://{$sweet_url}/investment'> View Our Available Plans </a>
+                                                    <a style='text-decoration: underline; color: #cca354;' href='https://{$sweet_url}/investment'> View Our Available Plans </a>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -157,14 +157,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                                             </tr>
                                             <tr>
                                                 <td style='padding: 15px 0px 25px;' align='middle'>
-                                                    <span><a style='text-decoration: underline; color: #085ff7;' href='https://{$sweet_url}'>Home</a>|</span>
-                                                    <a style='text-decoration: underline; color: #085ff7;' href='https://{$sweet_url}/about'>About</a>
+                                                    <span><a style='text-decoration: underline; color: #cca354;' href='https://{$sweet_url}'>Home</a>|</span>
+                                                    <a style='text-decoration: underline; color: #cca354;' href='https://{$sweet_url}/about'>About</a>
                                                     <span>|</span>
-                                                    <a style='text-decoration: underline; color: #085ff7;' href='https://{$sweet_url}/investment'>Plans</a>
+                                                    <a style='text-decoration: underline; color: #cca354;' href='https://{$sweet_url}/investment'>Plans</a>
                                                     <br />
-                                                    <a style='text-decoration: underline; color: #085ff7;' href='https://{$sweet_url}/news'>News</a>
+                                                    <a style='text-decoration: underline; color: #cca354;' href='https://{$sweet_url}/news'>News</a>
                                                     <span>|</span>
-                                                    <a style='text-decoration: underline; color: #085ff7;' href='https://{$sweet_url}/contact'>Contact</a>
+                                                    <a style='text-decoration: underline; color: #cca354;' href='https://{$sweet_url}/contact'>Contact</a>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -192,71 +192,80 @@ HTML;
                 $adminMail->Port = $smtpConfig['port'];
 
                 // Recipients
-                $adminMail->setFrom($smtpConfig['fromEmail'], $smtpConfig['fromName']);
-                $adminMail->addAddress($settings->email2, 'Livechat Agent');
+                $adminMail->setFrom($smtpConfig['sender_email'], $smtpConfig['sender_name']);
+                $adminMail->addAddress($settings->email2); // Admin email
 
                 // Content
                 $adminMail->isHTML(true);
-                $adminMail->Subject = "New Live Chat Initiated - {$settings->siteTitle}";
+                $adminMail->Subject = 'New Live Chat Initiated';
                 $adminMail->Body = $admin_message;
 
                 $adminMail->send();
             } catch (Exception $e) {
-                error_log("PHPMailer error in admin notification: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
-                $_SESSION['error'] = "Failed to send email notification: {$e->getMessage()}";
+                // Log error (in production, use proper logging)
+                error_log("Email could not be sent. Mailer Error: {$adminMail->ErrorInfo}");
             }
         }
 
-        $_SESSION['success'] = "Message sent successfully!";
-        header('location: livechat.php');
+        // Redirect to refresh messages
+        header('Location: livechat.php');
         exit;
-    } else {
-        $_SESSION['error'] = "Message cannot be empty.";
     }
 }
 
 // Fetch chat messages
-$stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
-$stmtQuery->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
-$stmtQuery->execute();
-$chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
+$stmtMessages = $conn->prepare("SELECT * FROM live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
+$stmtMessages->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
+$stmtMessages->execute();
+$messages = $stmtMessages->fetchAll(PDO::FETCH_OBJ);
 
-// Debug: Log the number of messages retrieved
-error_log("Guest ID: $guest_id, Messages retrieved: " . count($chatMessages), 3, __DIR__ . "/debug_log.txt");
-
+// Close database connection
 $pdo->close();
 
-// Page metadata for head.php
 $page_name = 'Live Chat';
 $page_parent = '';
 $page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
 $page_description = $settings->siteTitle . ' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
-
-// Now include head.php and output HTML
 include('inc/head.php');
 ?>
 
 <style>
-/* Custom styles for chat input and button */
+/* Custom styles for chat input and button to match home icon (#cca354) */
 .chat-box .form-control {
-    border-color: #085ff7;
-    box-shadow: none;
+    border: 1px solid #cca354;
+    background-color: transparent;
+    color: #ffffff;
 }
 .chat-box .form-control:focus {
-    border-color: #085ff7;
-    box-shadow: 0 0 0 0.2rem rgba(8, 95, 247, 0.25);
+    border-color: #cca354;
+    box-shadow: 0 2px 5px rgba(204, 163, 84, 0.5);
+    background-color: transparent;
+    color: #ffffff;
+}
+.chat-box .form-control::-webkit-input-placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+.chat-box .form-control::-moz-placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+.chat-box .form-control:-ms-input-placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+.chat-box .form-control:-moz-placeholder {
+    color: rgba(255, 255, 255, 0.7);
 }
 .chat-box .btn-primary {
-    background-color: #085ff7;
-    border-color: #085ff7;
-    color: #ffffff;
+    background-color: #cca354;
+    border-color: #cca354;
+    color: #000000;
+    padding: 10px 20px;
+    border-radius: 3px;
 }
 .chat-box .btn-primary:hover,
-.chat-box .btn-primary:focus,
-.chat-box .btn-primary:active {
-    background-color: #064ac6;
-    border-color: #064ac6;
-    color: #ffffff;
+.chat-box .btn-primary:focus {
+    background-color: #b78b36;
+    border-color: #b78b36;
+    color: #000000;
 }
 </style>
 
@@ -281,7 +290,7 @@ include('inc/head.php');
                     <div class="col-lg-6">
                         <h2 class="page-title">Live Chat</h2>
                         <ul class="page-breadcrumb">
-                            <li><a href="<?= $baseurl ?>">Home</a></li>
+                            <li><a href="<?= $baseurl; ?>">Home</a></li>
                             <li>Live Chat</li>
                         </ul>
                     </div>
@@ -294,74 +303,44 @@ include('inc/head.php');
         <section class="pt-120 pb-120">
             <div class="container">
                 <div class="row justify-content-center">
-                    <div class="col-lg-10">
-                        <!-- Display Success/Error Messages -->
-                        <?php if (isset($_SESSION['error'])) : ?>
-                            <div class='alert alert-danger border-0' role='alert'>
-                                <i class='la la-skull-crossbones alert-icon text-danger align-self-center font-30 mr-3'></i>
-                                <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                                    <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
-                                </button>
-                                <strong>Oh snap!</strong> <?= htmlspecialchars($_SESSION['error']) ?>
+                    <div class="col-lg-8">
+                        <div class="chat-box">
+                            <div class="chat-header">
+                                <h3>Chat with Support</h3>
+                                <p>Our support team is here to assist you. Ask any questions!</p>
                             </div>
-                            <?php unset($_SESSION['error']); ?>
-                        <?php endif; ?>
-                        <?php if (isset($_SESSION['success'])) : ?>
-                            <div class='alert alert-success border-0' role='alert'>
-                                <i class='mdi mdi-check-all alert-icon'></i>
-                                <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                                    <span aria-hidden='true'><i class='mdi mdi-close align-middle font-16'></i></span>
-                                </button>
-                                <strong>Well done!</strong> <?= htmlspecialchars($_SESSION['success']) ?>
-                            </div>
-                            <?php unset($_SESSION['success']); ?>
-                        <?php endif; ?>
-
-                        <div class="card">
-                            <div class="card-body">
-                                <!-- Chat Messages -->
-                                <div class="chat-box" style="max-height: 400px; overflow-y: auto;">
-                                    <?php if (!empty($chatMessages)) : ?>
-                                        <?php foreach ($chatMessages as $msg) : ?>
-                                            <div class="chat-message mb-3 <?= $msg['sender'] === 'user' ? 'text-right' : 'text-left'; ?>">
-                                                <div class="card p-2 d-inline-block <?= $msg['sender'] === 'user' ? 'bg-light' : 'bg-primary text-white'; ?>">
-                                                    <p class="mb-1"><?= htmlspecialchars($msg['message']); ?></p>
-                                                    <small class="text-muted"><?= $msg['date_sent']; ?> - <?= $msg['sender'] === 'user' ? 'Guest' : 'Livechat Agent'; ?></small>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php else : ?>
-                                        <p>No messages yet. Start a conversation below!</p>
-                                    <?php endif; ?>
-                                </div>
-
-                                <!-- Message Input Form -->
-                                <form method="POST" action="">
-                                    <div class="input-group mt-3">
-                                        <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required></textarea>
-                                        <div class="input-group-append">
-                                            <button type="submit" class="btn btn-primary">Send</button>
-                                        </div>
+                            <div class="chat-body">
+                                <?php foreach ($messages as $msg): ?>
+                                    <div class="message <?= $msg->sender === 'user' ? 'sent' : 'received' ?>">
+                                        <p><strong><?= $msg->sender === 'user' ? 'You' : 'Support' ?>:</strong> <?= htmlspecialchars($msg->message) ?></p>
+                                        <small><?= date('M d, Y H:i', strtotime($msg->date_sent)) ?></small>
                                     </div>
-                                </form>
-                            </div><!-- end card-body -->
-                        </div><!-- end card -->
-                    </div><!-- end col -->
-                </div><!-- end row -->
-            </div><!-- end container -->
+                                <?php endforeach; ?>
+                            </div>
+                            <form method="POST" action="">
+                                <div class="input-group mt-3">
+                                    <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required></textarea>
+                                    <div class="input-group-append">
+                                        <button type="submit" class="btn btn-primary">Send</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
         <!-- chat section end -->
 
         <!-- footer section start -->
-        <?php include('inc/footer.php'); ?>
+        <?php include('inc/footer.php') ?>
         <!-- footer section end -->
-    </div><!-- page-wrapper end -->
+    </div> <!-- page-wrapper end -->
 
-    <?php include('inc/scripts.php'); ?>
+    <?php include('inc/scripts.php') ?>
 </body>
 </html>
-
 <?php
-// Flush output buffer
+// End output buffering
 ob_end_flush();
 ?>
