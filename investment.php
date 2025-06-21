@@ -13,9 +13,6 @@
 
 ?>
 <body>
-  <!--========== Preloader ==========-->
-  
-  <!--========== Preloader ==========-->
 
   <!-- scroll-to-top start -->
   <?php include('inc/scroll-to-top.php'); ?>  
