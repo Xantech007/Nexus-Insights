@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message']) && (isset(
         $_SESSION['error'] = "Message cannot be empty or invalid user/guest.";
     }
     // Redirect to the same user/guest chat
-    $redirect_param = $user_id > 0 ? "user_id=$user_id" : "guest_id=$guest_id";
+    $redirect_param = $user_id > 0 ? "user_id=$user_id" : "guest_id=" . urlencode($guest_id);
     header("location: livechat.php?$redirect_param");
     exit;
 }
@@ -106,6 +106,9 @@ if ($selected_user_id > 0 || !empty($selected_guest_id)) {
 }
 
 $pdo->close();
+
+// Temporary debug log to verify selection (remove in production)
+error_log("Selected user_id: $selected_user_id, Selected guest_id: $selected_guest_id", 3, __DIR__ . "/debug_log.txt");
 
 // Include template files
 include('includes/header.php');
@@ -168,7 +171,7 @@ include('includes/scripts.php');
                       <?php foreach ($chatEntities as $entity) : ?>
                         <li class="list-group-item">
                           <a href="livechat.php?<?php echo $entity->id > 0 ? 'user_id=' . $entity->id : 'guest_id=' . urlencode($entity->guest_id); ?>" 
-                             class="<?php echo ($selected_user_id == $entity->id || $selected_guest_id == $entity->guest_id) ? 'active' : ''; ?>">
+                             class="<?php echo ($selected_user_id == $entity->id && $entity->id > 0) || ($selected_guest_id === $entity->guest_id && !empty($entity->guest_id)) ? 'active' : ''; ?>">
                             <?php echo htmlspecialchars($entity->full_name); ?>
                             <?php echo $entity->id > 0 ? ' (' . htmlspecialchars($entity->email) . ')' : ' (Guest ID: ' . htmlspecialchars(substr($entity->guest_id, 0, 8) . '...') . ')'; ?>
                           </a>
@@ -251,8 +254,12 @@ include('includes/scripts.php');
   border-radius: 5px;
 }
 .list-group-item a.active {
-  background-color: #007bff;
+  background-color: #6c757d; /* Changed to ash gray */
   color: white;
+}
+.list-group-item a:hover {
+  background-color: #f8f9fa; /* Light gray hover for non-active items */
+  color: #333;
 }
 .input-group textarea {
   padding: 10px;
