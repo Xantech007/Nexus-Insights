@@ -4,6 +4,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Start output buffering to capture any unintended output
+ob_start();
+
 include('init.php');
 include('admin/includes/format.php');
 
@@ -17,14 +20,6 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
-// Page metadata
-$page_name = 'Live Chat';
-$page_parent = '';
-$page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
-$page_description = $settings->siteTitle . ' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
-
-include('inc/head.php');
-
 // Initialize variables for guest
 $guest_id = null;
 $investor_name = 'Guest';
@@ -33,8 +28,8 @@ $investor_email = 'N/A';
 // Open database connection
 $conn = $pdo->open();
 
-// Assign guest ID
-if (!isset($_COOKIE['guest_id'])) {
+// Assign or validate guest ID
+if (!isset($_COOKIE['guest_id']) || empty($_COOKIE['guest_id']) || !preg_match('/^[a-f0-9]{32}$/', $_COOKIE['guest_id'])) {
     $guest_id = bin2hex(random_bytes(16)); // 32-character unique ID
     setcookie('guest_id', $guest_id, time() + (365 * 24 * 60 * 60), "/", "", true, true); // 1-year cookie, Secure, HttpOnly
 } else {
@@ -115,6 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
                                                                             <strong>Email:</strong> {$investor_email}<br />
                                                                             <strong>Guest ID:</strong> {$guest_id}<br />
                                                                             <strong>Message:</strong> {$message}<br /><br />
+                                                                            <strong>Admin Panel:</strong> <a href='https://{$sweet_url}/admin'>Login to respond</a><br /><br />
                                                                             Please log in to the admin panel to respond to this chat.
                                                                         </span>
                                                                     </p>
@@ -223,11 +219,21 @@ HTML;
 $stmtQuery = $conn->prepare("SELECT * FROM live_chat WHERE guest_id = :guest_id ORDER BY date_sent ASC");
 $stmtQuery->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
 $stmtQuery->execute();
-if ($stmtQuery->rowCount()) {
-    $chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
-}
+$chatMessages = $stmtQuery->fetchAll(PDO::FETCH_ASSOC);
+
+// Debug: Log the number of messages retrieved
+error_log("Guest ID: $guest_id, Messages retrieved: " . count($chatMessages), 3, __DIR__ . "/debug_log.txt");
 
 $pdo->close();
+
+// Page metadata for head.php
+$page_name = 'Live Chat';
+$page_parent = '';
+$page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
+$page_description = $settings->siteTitle . ' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
+
+// Now include head.php and output HTML
+include('inc/head.php');
 ?>
 
 <body>
@@ -330,3 +336,8 @@ $pdo->close();
     <?php include('inc/scripts.php'); ?>
 </body>
 </html>
+
+<?php
+// Flush output buffer
+ob_end_flush();
+?>
