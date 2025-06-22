@@ -19,10 +19,12 @@ if (!isset($_SESSION['admin'])) {
 $conn = $pdo->open();
 
 // Handle message submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message']) && (isset($_POST['user_id']) || isset($_POST['guest_id']))) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message']) && (isset($_POST['id']))) {
     $message = trim($_POST['message']);
-    $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
-    $guest_id = isset($_POST['guest_id']) ? trim($_POST['guest_id']) : null;
+    $id = $_POST['id'];
+    $type = $_POST['type'];
+    $user_id = $type === 'user' ? intval($id) : 0;
+    $guest_id = $type === 'guest' ? $id : null;
 
     if (!empty($message) && ($user_id > 0 || !empty($guest_id))) {
         try {
@@ -300,20 +302,15 @@ include('includes/menubar.php');
                         <p>No messages yet. Start a conversation below!</p>
                       <?php endif; ?>
                     </div>
-                    <!-- Message Input Form -->
-                    <form method="POST" action="">
-                      <?php if ($selected_user_id > 0) : ?>
-                        <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($selected_user_id); ?>">
-                      <?php else : ?>
-                        <input type="hidden" name="guest_id" value="<?php echo htmlspecialchars($selected_guest_id); ?>">
-                      <?php endif; ?>
-                      <div class="input-group mt-3">
-                        <textarea name="message" class="form-control" rows="3" placeholder="Type your message..." required></textarea>
-                        <div class="input-group-append">
-                          <button type="submit" class="btn btn-primary">Send</button>
-                        </div>
-                      </div>
-                    </form>
+                    <!-- Reply Button -->
+                    <div class="mt-3">
+                      <button class="btn btn-primary btn-sm reply btn-flat" 
+                              data-id="<?php echo $selected_user_id > 0 ? $selected_user_id : htmlspecialchars($selected_guest_id); ?>" 
+                              data-type="<?php echo $selected_user_id > 0 ? 'user' : 'guest'; ?>" 
+                              title="Reply to <?php echo htmlspecialchars($selected_name); ?>">
+                        <i class="fa fa-reply"></i> Reply
+                      </button>
+                    </div>
                   <?php else : ?>
                     <p>Select a user or guest from the tables above to view their messages.</p>
                   <?php endif; ?>
@@ -327,6 +324,7 @@ include('includes/menubar.php');
   </div>
 
   <?php include 'includes/livechat_modal.php'; ?>
+  <?php include 'includes/reply_modal.php'; ?>
   <?php include 'includes/footer.php'; ?>
   <?php include 'includes/scripts.php'; ?>
 </div>
@@ -370,6 +368,19 @@ $(document).ready(function(){
     $('.did').val(id);
     $('.type').val(type);
     $('.name').text(name);
+  });
+
+  // Reply button click handler
+  $(document).on('click', '.reply', function(e){
+    e.preventDefault();
+    var id = $(this).data('id');
+    var type = $(this).data('type');
+    var name = type === 'user' ? 'User ID: ' + id : 'Guest ID: ' + id.substr(0, 8) + '...';
+    $('#reply').modal('show');
+    $('.rid').val(id);
+    $('.type').val(type);
+    $('.name').text(name);
+    $('#message').val(''); // Clear textarea
   });
 });
 </script>
