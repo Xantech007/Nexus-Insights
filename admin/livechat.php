@@ -58,29 +58,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message']) && (isset(
     exit;
 }
 
-// Fetch all users and guests with chats
-$chatEntities = [];
+// Fetch users with chats
+$users = [];
 try {
-    // Fetch users with chats
-    $stmtUsers = $conn->query("SELECT DISTINCT u.id, u.full_name, u.email, NULL as guest_id 
-                               FROM users u 
-                               JOIN live_chat lc ON u.id = lc.user_id 
-                               WHERE lc.user_id > 0
-                               ORDER BY u.full_name");
+    $stmtUsers = $conn->prepare("
+        SELECT u.id, u.full_name, u.email,
+               (SELECT MAX(date_sent) FROM live_chat lc WHERE lc.user_id = u.id) as last_message_time,
+               (SELECT COUNT(*) FROM live_chat lc WHERE lc.user_id = u.id) as message_count
+        FROM users u
+        JOIN live_chat lc ON u.id = lc.user_id
+        WHERE lc.user_id > 0
+        GROUP BY u.id
+        ORDER BY last_message_time DESC
+    ");
+    $stmtUsers->execute();
     $users = $stmtUsers->fetchAll(PDO::FETCH_OBJ);
-
-    // Fetch guests with chats
-    $stmtGuests = $conn->query("SELECT DISTINCT NULL as id, 'Guest' as full_name, 'N/A' as email, lc.guest_id 
-                                FROM live_chat lc 
-                                WHERE lc.guest_id IS NOT NULL AND lc.user_id = 0
-                                ORDER BY lc.guest_id");
-    $guests = $stmtGuests->fetchAll(PDO::FETCH_OBJ);
-
-    // Combine users and guests
-    $chatEntities = array_merge($users, $guests);
 } catch (PDOException $e) {
     $_SESSION['error'] = 'Database error occurred: ' . $e->getMessage();
-    error_log("Database error in fetching users/guests: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
+    error_log("Database error in fetching users: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
+}
+
+// Fetch guests with chats
+$guests = [];
+try {
+    $stmtGuests = $conn->prepare("
+        SELECT lc.guest_id,
+               MAX(lc.date_sent) as last_message_time,
+               COUNT(*) as message_count
+        FROM live_chat lc
+        WHERE lc.guest_id IS NOT NULL AND lc.user_id = 0
+        GROUP BY lc.guest_id
+        ORDER BY last_message_time DESC
+    ");
+    $stmtGuests->execute();
+    $guests = $stmtGuests->fetchAll(PDO::FETCH_OBJ);
+} catch (PDOException $e) {
+    $_SESSION['error'] = 'Database error occurred: ' . $e->getMessage();
+    error_log("Database error in fetching guests: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
 }
 
 // Fetch messages for selected user or guest
@@ -162,40 +176,112 @@ include('includes/menubar.php');
             </div>
             <div class="box-body" style="padding: 20px;">
               <div class="row">
-                <!-- User/Guest List -->
-                <div class="col-md-4">
-                  <h5>Chats</h5>
-                  <ul class="list-group">
-                    <?php if (!empty($chatEntities)) : ?>
-                      <?php foreach ($chatEntities as $entity) : ?>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                          <a href="livechat.php?<?php echo $entity->id > 0 ? 'user_id=' . $entity->id : 'guest_id=' . urlencode($entity->guest_id); ?>" 
-                             class="<?php echo ($selected_user_id == $entity->id && $entity->id > 0) || ($selected_guest_id === $entity->guest_id && !empty($entity->guest_id)) ? 'active' : ''; ?>">
-                            <?php echo htmlspecialchars($entity->full_name); ?>
-                            <?php echo $entity->id > 0 ? ' (' . htmlspecialchars($entity->email) . ')' : ' (Guest ID: ' . htmlspecialchars(substr($entity->guest_id, 0, 8) . '...') . ')'; ?>
-                          </a>
-                          <button class="btn btn-danger btn-sm delete btn-flat" 
-                                  data-id="<?php echo $entity->id > 0 ? $entity->id : htmlspecialchars($entity->guest_id); ?>" 
-                                  data-type="<?php echo $entity->id > 0 ? 'user' : 'guest'; ?>" 
-                                  title="Delete chat history">
-                            <i class="fa fa-trash"></i> Delete
-                          </button>
-                        </li>
-                      <?php endforeach; ?>
-                    <?php else : ?>
-                      <p>No active chats found.</p>
-                    <?php endif; ?>
-                  </ul>
+                <!-- Users Table -->
+                <div class="col-md-6">
+                  <h5>Users</h5>
+                  <p><i class="fa fa-eye"></i> Click on the User ID to view chat details</p>
+                  <div class="table-responsive">
+                    <table id="usersTable" class="table table-bordered">
+                      <thead>
+                        <th>User ID</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Last Message Time</th>
+                        <th>Message Count</th>
+                        <th>Actions</th>
+                      </thead>
+                      <tbody>
+                        <?php if (!empty($users)) : ?>
+                          <?php foreach ($users as $user) : ?>
+                            <tr>
+                              <td>
+                                <a href="livechat.php?user_id=<?php echo urlencode($user->id); ?>" 
+                                   title="View chat for User ID <?php echo htmlspecialchars($user->id); ?>">
+                                   <?php echo htmlspecialchars($user->id); ?>
+                                </a>
+                              </td>
+                              <td><?php echo htmlspecialchars($user->full_name); ?></td>
+                              <td><?php echo htmlspecialchars($user->email); ?></td>
+                              <td><?php echo $user->last_message_time ? date('M d, Y H:i', strtotime($user->last_message_time)) : 'N/A'; ?></td>
+                              <td><?php echo $user->message_count; ?></td>
+                              <td>
+                                <button class="btn btn-danger btn-sm delete btn-flat" 
+                                        data-id="<?php echo $user->id; ?>" 
+                                        data-type="user" 
+                                        title="Delete chat history">
+                                  <i class="fa fa-trash"></i> Delete
+                                </button>
+                              </td>
+                            </tr>
+                          <?php endforeach; ?>
+                        <?php else : ?>
+                          <tr><td colspan="6">No user chats found.</td></tr>
+                        <?php endif; ?>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <!-- Chat Area -->
-                <div class="col-md-8">
+                <!-- Guests Table -->
+                <div class="col-md-6">
+                  <h5>Guests</h5>
+                  <p><i class="fa fa-eye"></i> Click on the Guest ID to view chat details</p>
+                  <div class="table-responsive">
+                    <table id="guestsTable" class="table table-bordered">
+                      <thead>
+                        <th>Guest ID</th>
+                        <th>Last Message Time</th>
+                        <th>Message Count</th>
+                        <th>Actions</th>
+                      </thead>
+                      <tbody>
+                        <?php if (!empty($guests)) : ?>
+                          <?php foreach ($guests as $guest) : ?>
+                            <tr>
+                              <td>
+                                <a href="livechat.php?guest_id=<?php echo urlencode($guest->guest_id); ?>" 
+                                   title="View chat for Guest ID <?php echo htmlspecialchars($guest->guest_id); ?>">
+                                   <?php echo htmlspecialchars(substr($guest->guest_id, 0, 8)); ?>...
+                                </a>
+                              </td>
+                              <td><?php echo $guest->last_message_time ? date('M d, Y H:i', strtotime($guest->last_message_time)) : 'N/A'; ?></td>
+                              <td><?php echo $guest->message_count; ?></td>
+                              <td>
+                                <button class="btn btn-danger btn-sm delete btn-flat" 
+                                        data-id="<?php echo htmlspecialchars($guest->guest_id); ?>" 
+                                        data-type="guest" 
+                                        title="Delete chat history">
+                                  <i class="fa fa-trash"></i> Delete
+                                </button>
+                              </td>
+                            </tr>
+                          <?php endforeach; ?>
+                        <?php else : ?>
+                          <tr><td colspan="4">No guest chats found.</td></tr>
+                        <?php endif; ?>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <!-- Chat Area -->
+              <div class="row mt-4">
+                <div class="col-xs-12">
                   <?php if ($selected_user_id > 0 || !empty($selected_guest_id)) : ?>
                     <h5>Chat with <?php
                       $selected_name = 'Unknown';
-                      foreach ($chatEntities as $entity) {
-                        if ($entity->id == $selected_user_id || $entity->guest_id == $selected_guest_id) {
-                          $selected_name = $entity->full_name . ($entity->id > 0 ? ' (' . $entity->email . ')' : ' (Guest ID: ' . substr($entity->guest_id, 0, 8) . '...)');
-                          break;
+                      if ($selected_user_id > 0) {
+                        foreach ($users as $user) {
+                          if ($user->id == $selected_user_id) {
+                            $selected_name = $user->full_name . ' (' . $user->email . ')';
+                            break;
+                          }
+                        }
+                      } else {
+                        foreach ($guests as $guest) {
+                          if ($guest->guest_id == $selected_guest_id) {
+                            $selected_name = 'Guest (ID: ' . substr($guest->guest_id, 0, 8) . '...)';
+                            break;
+                          }
                         }
                       }
                       echo htmlspecialchars($selected_name);
@@ -229,7 +315,7 @@ include('includes/menubar.php');
                       </div>
                     </form>
                   <?php else : ?>
-                    <p>Select a user or guest to view their messages.</p>
+                    <p>Select a user or guest from the tables above to view their messages.</p>
                   <?php endif; ?>
                 </div>
               </div>
@@ -248,6 +334,33 @@ include('includes/menubar.php');
 
 <script>
 $(document).ready(function(){
+  // Initialize Users Table
+  if ($.fn.DataTable.isDataTable('#usersTable')) {
+    $('#usersTable').DataTable().destroy();
+  }
+  $('#usersTable').DataTable({
+    "order": [[3, "desc"]], // Sort by Last Message Time
+    "columnDefs": [
+      { "orderable": true, "targets": [0, 1, 2, 3, 4] }, // Sortable: User ID, Full Name, Email, Last Message Time, Message Count
+      { "orderable": false, "targets": [5] } // Non-sortable: Actions
+    ],
+    "pageLength": 10
+  });
+
+  // Initialize Guests Table
+  if ($.fn.DataTable.isDataTable('#guestsTable')) {
+    $('#guestsTable').DataTable().destroy();
+  }
+  $('#guestsTable').DataTable({
+    "order": [[1, "desc"]], // Sort by Last Message Time
+    "columnDefs": [
+      { "orderable": true, "targets": [0, 1, 2] }, // Sortable: Guest ID, Last Message Time, Message Count
+      { "orderable": false, "targets": [3] } // Non-sortable: Actions
+    ],
+    "pageLength": 10
+  });
+
+  // Delete button click handler
   $(document).on('click', '.delete', function(e){
     e.preventDefault();
     var id = $(this).data('id');
@@ -272,27 +385,19 @@ $(document).ready(function(){
 .bg-user {
   background-color: #e3e3e3;
 }
-.list-group-item {
-  margin-bottom: 5px;
-  border-radius: 5px;
+.table-responsive {
+  overflow-x: auto;
+  width: 100%;
 }
-.list-group-item a.active {
-  background-color: #6c757d; /* Changed to ash gray */
-  color: white;
+.table-responsive table {
+  min-width: 600px;
 }
-.list-group-item a:hover {
-  background-color: #f8f9fa; /* Light gray hover for non-active items */
-  color: #333;
+.box-body p {
+  font-weight: bold;
+  margin-bottom: 15px;
 }
-.input-group textarea {
-  padding: 10px;
-}
-.input-group-append .btn {
-  padding: 10px 20px;
-}
-.list-group-item .btn-danger {
-  padding: 5px 10px;
-  font-size: 12px;
+.mt-4 {
+  margin-top: 2rem;
 }
 </style>
 </body>
