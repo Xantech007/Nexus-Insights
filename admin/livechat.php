@@ -18,33 +18,6 @@ if (!isset($_SESSION['admin'])) {
 
 $conn = $pdo->open();
 
-// Handle chat deletion
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_chat'])) {
-    $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
-    $guest_id = isset($_POST['guest_id']) ? trim($_POST['guest_id']) : null;
-
-    if ($user_id > 0 || !empty($guest_id)) {
-        try {
-            if ($user_id > 0) {
-                $stmtDelete = $conn->prepare("DELETE FROM live_chat WHERE user_id = :user_id");
-                $stmtDelete->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-            } else {
-                $stmtDelete = $conn->prepare("DELETE FROM live_chat WHERE guest_id = :guest_id");
-                $stmtDelete->bindParam(':guest_id', $guest_id, PDO::PARAM_STR);
-            }
-            $stmtDelete->execute();
-            $_SESSION['success'] = "Chat deleted successfully!";
-        } catch (PDOException $e) {
-            $_SESSION['error'] = 'Database error occurred: ' . $e->getMessage();
-            error_log("Database error in chat deletion: " . $e->getMessage(), 3, __DIR__ . "/error_log.txt");
-        }
-    } else {
-        $_SESSION['error'] = "Invalid user or guest ID.";
-    }
-    header("location: livechat.php");
-    exit;
-}
-
 // Handle message submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message']) && (isset($_POST['user_id']) || isset($_POST['guest_id']))) {
     $message = trim($_POST['message']);
@@ -134,11 +107,15 @@ if ($selected_user_id > 0 || !empty($selected_guest_id)) {
 
 $pdo->close();
 
+// Temporary debug log to verify selection (remove in production)
+error_log("Selected user_id: $selected_user_id, Selected guest_id: $selected_guest_id", 3, __DIR__ . "/debug_log.txt");
+
 // Include template files
 include('includes/header.php');
 include('includes/navbar.php');
 include('includes/menubar.php');
 ?>
+
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
 
@@ -197,14 +174,11 @@ include('includes/menubar.php');
                             <?php echo htmlspecialchars($entity->full_name); ?>
                             <?php echo $entity->id > 0 ? ' (' . htmlspecialchars($entity->email) . ')' : ' (Guest ID: ' . htmlspecialchars(substr($entity->guest_id, 0, 8) . '...') . ')'; ?>
                           </a>
-                          <?php
-                            $name = $entity->full_name . ($entity->id > 0 ? ' (' . $entity->email . ')' : ' (Guest ID: ' . substr($entity->guest_id, 0, 8) . '...'));
-                          ?>
-                          <button class="btn btn-ash btn-sm delete-chat btn-flat" 
-                                  data-user-id="<?php echo $entity->id > 0 ? htmlspecialchars($entity->id) : ''; ?>" 
-                                  data-guest-id="<?php echo !empty($entity->guest_id) ? htmlspecialchars($entity->guest_id) : ''; ?>" 
-                                  data-name="<?php echo htmlspecialchars($name); ?>">
-                            <i class="fa fa-trash"></i>
+                          <button class="btn btn-danger btn-sm delete btn-flat" 
+                                  data-id="<?php echo $entity->id > 0 ? $entity->id : htmlspecialchars($entity->guest_id); ?>" 
+                                  data-type="<?php echo $entity->id > 0 ? 'user' : 'guest'; ?>" 
+                                  title="Delete chat history">
+                            <i class="fa fa-trash"></i> Delete
                           </button>
                         </li>
                       <?php endforeach; ?>
@@ -266,49 +240,49 @@ include('includes/menubar.php');
     </section>
   </div>
 
-  <!-- Delete Chat Modal -->
-  <div class="modal fade" id="deleteChat">
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="delete">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-          <h4 class="modal-title"><b>Deleting Chat...</b></h4>
+          <h4 class="modal-title"><b>Delete Chat History</b></h4>
         </div>
         <div class="modal-body">
-          <form method="POST" action="">
-            <input type="hidden" class="user-id" name="user_id">
-            <input type="hidden" class="guest-id" name="guest_id">
-            <input type="hidden" name="delete_chat" value="1">
-            <p>Are you sure you want to delete the chat for <span class="name"></span>?</p>
+          <form class="form-horizontal" method="POST" action="delete_chat.php">
+            <input type="hidden" class="did" name="id">
+            <input type="hidden" class="type" name="type">
+            <p>Are you sure you want to delete the chat history for <span class="name"></span>?</p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
-            <button type="submit" class="btn btn-ash btn-flat"><i class="fa fa-trash"></i> Delete</button>
-          </form>
+          <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
+          <button type="submit" class="btn btn-danger btn-flat" name="delete"><i class="fa fa-trash"></i> Delete</button>
         </div>
+          </form>
       </div>
     </div>
   </div>
 
+  <?php include 'includes/footer.php'; ?>
+  <?php include 'includes/scripts.php'; ?>
 </div>
 <!-- ./wrapper -->
 
-<?php include('includes/footer.php'); ?>
-<?php include('includes/scripts.php'); ?>
 <script>
 $(document).ready(function(){
-  $(document).on('click', '.delete-chat', function(e){
+  $(document).on('click', '.delete', function(e){
     e.preventDefault();
-    var user_id = $(this).data('user-id');
-    var guest_id = $(this).data('guest-id');
-    var name = $(this).data('name');
-    $('#deleteChat').modal('show');
-    $('.user-id').val(user_id);
-    $('.guest-id').val(guest_id);
+    var id = $(this).data('id');
+    var type = $(this).data('type');
+    var name = type === 'user' ? 'User ID: ' + id : 'Guest ID: ' + id.substr(0, 8) + '...';
+    $('#delete').modal('show');
+    $('.did').val(id);
+    $('.type').val(type);
     $('.name').text(name);
   });
 });
 </script>
+
 <style>
 .chat-box {
   max-height: 400px;
@@ -325,11 +299,11 @@ $(document).ready(function(){
   border-radius: 5px;
 }
 .list-group-item a.active {
-  background-color: #6c757d; /* Ash gray */
+  background-color: #6c757d; /* Changed to ash gray */
   color: white;
 }
 .list-group-item a:hover {
-  background-color: #f8f9fa; /* Light gray hover */
+  background-color: #f8f9fa; /* Light gray hover for non-active items */
   color: #333;
 }
 .input-group textarea {
@@ -338,18 +312,9 @@ $(document).ready(function(){
 .input-group-append .btn {
   padding: 10px 20px;
 }
-.btn-ash {
-  background-color: #6c757d; /* Ash gray */
-  border-color: #6c757d;
-  color: white;
-}
-.btn-ash:hover {
-  background-color: #5a6268; /* Darker ash gray */
-  border-color: #5a6268;
-  color: white;
-}
-.delete-chat {
-  padding: 2px 8px; /* Smaller padding for btn-sm */
+.list-group-item .btn-danger {
+  padding: 5px 10px;
+  font-size: 12px;
 }
 </style>
 </body>
