@@ -197,10 +197,13 @@ include('includes/menubar.php');
                             <?php echo htmlspecialchars($entity->full_name); ?>
                             <?php echo $entity->id > 0 ? ' (' . htmlspecialchars($entity->email) . ')' : ' (Guest ID: ' . htmlspecialchars(substr($entity->guest_id, 0, 8) . '...') . ')'; ?>
                           </a>
+                          <?php
+                            $name = $entity->full_name . ($entity->id > 0 ? ' (' . $entity->email . ')' : ' (Guest ID: ' . substr($entity->guest_id, 0, 8) . '...'));
+                          ?>
                           <button class="btn btn-ash btn-sm delete-chat btn-flat" 
                                   data-user-id="<?php echo $entity->id > 0 ? htmlspecialchars($entity->id) : ''; ?>" 
                                   data-guest-id="<?php echo !empty($entity->guest_id) ? htmlspecialchars($entity->guest_id) : ''; ?>" 
-                                  data-name="<?php echo htmlspecialchars($entity->full_name . ($entity->id > 0 ? ' (' . $entity->email . ')' : ' (Guest ID: ' . substr($entity->guest_id, 0, 8) . '...')')); ?>">
+                                  data-name="<?php echo htmlspecialchars($name); ?>">
                             <i class="fa fa-trash"></i>
                           </button>
                         </li>
@@ -268,7 +271,7 @@ include('includes/menubar.php');
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
           <h4 class="modal-title"><b>Deleting Chat...</b></h4>
         </div>
         <div class="modal-body">
