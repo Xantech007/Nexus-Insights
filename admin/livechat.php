@@ -195,7 +195,7 @@ include('includes/menubar.php');
                       <tbody>
                         <?php if (!empty($users)) : ?>
                           <?php foreach ($users as $user) : ?>
-                            <tr>
+                            <tr class="<?php echo $selected_user_id == $user->id ? 'selected-row' : ''; ?>">
                               <td>
                                 <a href="livechat.php?user_id=<?php echo urlencode($user->id); ?>" 
                                    title="View chat for User ID <?php echo htmlspecialchars($user->id); ?>">
@@ -207,6 +207,12 @@ include('includes/menubar.php');
                               <td><?php echo $user->last_message_time ? date('M d, Y H:i', strtotime($user->last_message_time)) : 'N/A'; ?></td>
                               <td><?php echo $user->message_count; ?></td>
                               <td>
+                                <button class="btn btn-primary btn-sm reply btn-flat" 
+                                        data-id="<?php echo $user->id; ?>" 
+                                        data-type="user" 
+                                        title="Reply to <?php echo htmlspecialchars($user->full_name); ?>">
+                                  <i class="fa fa-reply"></i> Reply
+                                </button>
                                 <button class="btn btn-danger btn-sm delete btn-flat" 
                                         data-id="<?php echo $user->id; ?>" 
                                         data-type="user" 
@@ -238,7 +244,7 @@ include('includes/menubar.php');
                       <tbody>
                         <?php if (!empty($guests)) : ?>
                           <?php foreach ($guests as $guest) : ?>
-                            <tr>
+                            <tr class="<?php echo $selected_guest_id == $guest->guest_id ? 'selected-row' : ''; ?>">
                               <td>
                                 <a href="livechat.php?guest_id=<?php echo urlencode($guest->guest_id); ?>" 
                                    title="View chat for Guest ID <?php echo htmlspecialchars($guest->guest_id); ?>">
@@ -248,6 +254,12 @@ include('includes/menubar.php');
                               <td><?php echo $guest->last_message_time ? date('M d, Y H:i', strtotime($guest->last_message_time)) : 'N/A'; ?></td>
                               <td><?php echo $guest->message_count; ?></td>
                               <td>
+                                <button class="btn btn-primary btn-sm reply btn-flat" 
+                                        data-id="<?php echo htmlspecialchars($guest->guest_id); ?>" 
+                                        data-type="guest" 
+                                        title="Reply to Guest ID <?php echo htmlspecialchars(substr($guest->guest_id, 0, 8)); ?>...">
+                                  <i class="fa fa-reply"></i> Reply
+                                </button>
                                 <button class="btn btn-danger btn-sm delete btn-flat" 
                                         data-id="<?php echo htmlspecialchars($guest->guest_id); ?>" 
                                         data-type="guest" 
@@ -299,17 +311,8 @@ include('includes/menubar.php');
                           </div>
                         <?php endforeach; ?>
                       <?php else : ?>
-                        <p>No messages yet. Start a conversation below!</p>
+                        <p>No messages yet. Start a conversation using the Reply button in the table above.</p>
                       <?php endif; ?>
-                    </div>
-                    <!-- Reply Button -->
-                    <div class="mt-3">
-                      <button class="btn btn-primary btn-sm reply btn-flat" 
-                              data-id="<?php echo $selected_user_id > 0 ? $selected_user_id : htmlspecialchars($selected_guest_id); ?>" 
-                              data-type="<?php echo $selected_user_id > 0 ? 'user' : 'guest'; ?>" 
-                              title="Reply to <?php echo htmlspecialchars($selected_name); ?>">
-                        <i class="fa fa-reply"></i> Reply
-                      </button>
                     </div>
                   <?php else : ?>
                     <p>Select a user or guest from the tables above to view their messages.</p>
@@ -409,6 +412,15 @@ $(document).ready(function(){
 }
 .mt-4 {
   margin-top: 2rem;
+}
+.selected-row {
+  background-color: #e9ecef !important; /* Light gray for selected row */
+}
+.table-bordered tbody tr.selected-row td {
+  border-color: #dee2e6;
+}
+.btn-sm {
+  margin-right: 5px; /* Space between buttons in Actions column */
 }
 </style>
 </body>
