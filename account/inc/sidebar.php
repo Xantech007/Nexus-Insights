@@ -33,7 +33,7 @@
             </li>
 
             <li>
-                <a href="messages"><i data-feather="notifications" class="align-self-center menu-icon"></i><span>Notifications</span></a>
+                <a href="messages"><i data-feather="inbox" class="align-self-center menu-icon"></i><span>Notifications</span></a>
             </li>     
 
             <li>
