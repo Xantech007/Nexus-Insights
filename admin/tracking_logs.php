@@ -2,20 +2,128 @@
 include 'includes/session.php';
 include '../account/connect.php';
 
-// Function to parse browser from user agent
-function getBrowser($userAgent) {
+// Function to parse user agent details
+function parseUserAgent($userAgent) {
     include 'includes/browsers.php'; // Load browser patterns from includes/browsers.php
 
+    $result = [
+        'browser' => 'Unknown',
+        'browser_version' => 'Unknown',
+        'os' => 'Unknown',
+        'os_version' => 'Unknown',
+        'device_type' => 'Unknown',
+        'device_brand' => 'Unknown',
+        'device_model' => 'Unknown',
+        'engine' => 'Unknown',
+        'is_bot' => false
+    ];
+
+    // OS patterns
+    $oses = [
+        'Windows' => 'Windows NT ([0-9.]+)',
+        'macOS' => 'Mac OS X ([0-9_\.]+)',
+        'Linux' => 'Linux',
+        'Ubuntu' => 'Ubuntu',
+        'Android' => 'Android ([0-9.]+)',
+        'iOS' => '(?:iPhone OS|CPU OS) ([0-9_\.]+)'
+    ];
+
+    // Device type patterns
+    $devices = [
+        'Mobile' => 'Mobile|Android|iPhone|iPod',
+        'Tablet' => 'iPad|Kindle|Nexus 7|Nexus 9|Nexus 10|Tablet',
+        'Desktop' => 'Windows NT|Mac OS X|Linux|X11'
+    ];
+
+    // Browser engine patterns
+    $engines = [
+        'Blink' => 'Chrome|Edg|OPR|SamsungBrowser|UCBrowser|Brave|Vivaldi',
+        'WebKit' => 'Safari|Version',
+        'Gecko' => 'Firefox|PaleMoon|Waterfox|SeaMonkey|Iceweasel|IceCat',
+        'Trident' => 'MSIE|Trident'
+    ];
+
+    // Bot patterns
+    $bots = [
+        'Googlebot' => 'Googlebot',
+        'Bingbot' => 'Bingbot',
+        'Slurp' => 'Yahoo! Slurp',
+        'DuckDuckBot' => 'DuckDuckBot',
+        'Baiduspider' => 'Baiduspider'
+    ];
+
+    // Device brand/model patterns
+    $brands = [
+        'Apple' => 'iPhone|iPad|iPod',
+        'Samsung' => 'SAMSUNG|Galaxy',
+        'Huawei' => 'Huawei',
+        'Xiaomi' => 'Xiaomi|Redmi',
+        'Amazon' => 'Kindle|Fire'
+    ];
+
+    // Detect browser
     foreach ($browsers as $browser => $pattern) {
         if (preg_match("/$pattern/i", $userAgent, $match)) {
-            // Handle browsers with dual version matches (e.g., Internet Explorer with MSIE or rv:)
-            $version = $match[1] ?? ($match[2] ?? 'Unknown');
-            return "$browser $version";
+            $result['browser'] = $browser;
+            $result['browser_version'] = $match[1] ?? ($match[2] ?? 'Unknown'); // Handle IE dual patterns
+            break;
         }
     }
+
+    // Detect OS
+    foreach ($oses as $os => $pattern) {
+        if (preg_match("/$pattern/i", $userAgent, $match)) {
+            $result['os'] = $os;
+            $result['os_version'] = str_replace('_', '.', $match[1] ?? 'Unknown');
+            break;
+        }
+    }
+
+    // Detect device type
+    foreach ($devices as $type => $pattern) {
+        if (preg_match("/$pattern/i", $userAgent)) {
+            $result['device_type'] = $type;
+            break;
+        }
+    }
+
+    // Detect browser engine
+    foreach ($engines as $engine => $pattern) {
+        if (preg_match("/$pattern/i", $userAgent)) {
+            $result['engine'] = $engine;
+            break;
+        }
+    }
+
+    // Detect bot
+    foreach ($bots as $bot => $pattern) {
+        if (preg_match("/$pattern/i", $userAgent)) {
+            $result['is_bot'] = true;
+            $result['browser'] = $bot;
+            break;
+        }
+    }
+
+    // Detect device brand
+    foreach ($brands as $brand => $pattern) {
+        if (preg_match("/$pattern/i", $userAgent)) {
+            $result['device_brand'] = $brand;
+            if (preg_match("/($pattern\s+[\w\-\s\/]+)/i", $userAgent, $modelMatch)) {
+                $result['device_model'] = trim($modelMatch[1]) ?? 'Unknown';
+            }
+            break;
+        }
+    }
+
     // Log unknown user agents for review
-    file_put_contents('logs/unknown_useragents.log', $userAgent . "\n", FILE_APPEND);
-    return 'Unknown';
+    if ($result['browser'] === 'Unknown') {
+        if (!file_exists('logs')) {
+            mkdir('logs', 0755, true);
+        }
+        file_put_contents('logs/unknown_useragents.log', $userAgent . "\n", FILE_APPEND);
+    }
+
+    return $result;
 }
 ?>
 
@@ -74,10 +182,16 @@ function getBrowser($userAgent) {
                     <th>Latest IP Address</th>
                     <th>Location</th>
                     <th>Browser</th>
+                    <th>OS</th>
+                    <th>Device Type</th>
+                    <th>Device Brand</th>
+                    <th>Device Model</th>
+                    <th>Browser Engine</th>
                     <th>User Agent</th>
                     <th>Last Visit</th>
                     <th>Visit Count</th>
                     <th>User ID</th>
+                    <th>Is Bot</th>
                     <th>Actions</th>
                   </thead>
                   <tbody>
@@ -101,27 +215,35 @@ function getBrowser($userAgent) {
                         $result = $stmt->get_result();
 
                         if ($result->num_rows > 0) {
-                          while ($row = $result->fetch_assoc()) { ?>
+                          while ($row = $result->fetch_assoc()) {
+                            $uaInfo = parseUserAgent($row['user_agent']);
+                            ?>
                             <tr>
                               <td><a href="visitor_logs.php?visitor_id=<?php echo urlencode($row['visitor_id']); ?>" title="View details for Visitor ID <?php echo htmlspecialchars($row['visitor_id']); ?>"><?php echo htmlspecialchars(substr($row['visitor_id'], 0, 8)); ?>...</a></td>
                               <td><?php echo htmlspecialchars($row['ip_address']); ?></td>
                               <td><?php echo htmlspecialchars($row['location']); ?></td>
-                              <td><?php echo htmlspecialchars(getBrowser($row['user_agent'])); ?></td>
+                              <td><?php echo htmlspecialchars($uaInfo['browser'] . ' ' . $uaInfo['browser_version']); ?></td>
+                              <td><?php echo htmlspecialchars($uaInfo['os'] . ' ' . $uaInfo['os_version']); ?></td>
+                              <td><?php echo htmlspecialchars($uaInfo['device_type']); ?></td>
+                              <td><?php echo htmlspecialchars($uaInfo['device_brand']); ?></td>
+                              <td><?php echo htmlspecialchars($uaInfo['device_model']); ?></td>
+                              <td><?php echo htmlspecialchars($uaInfo['engine']); ?></td>
                               <td><?php echo htmlspecialchars(substr($row['user_agent'] ?? 'N/A', 0, 50)); ?>...</td>
                               <td><?php echo date('M d, Y H:i', strtotime($row['visit_time'])); ?></td>
                               <td><?php echo $row['visit_count']; ?></td>
                               <td><?php echo $row['user_id'] ? '<a href="view.php?i_id='.urlencode($row['user_id']).'">'.htmlspecialchars($row['user_id']).'</a>' : 'Guest'; ?></td>
+                              <td><?php echo $uaInfo['is_bot'] ? 'Yes' : 'No'; ?></td>
                               <td>
                                 <button class="btn btn-danger btn-sm delete btn-flat" data-id="<?php echo $row['id']; ?>" data-visitor-id="<?php echo htmlspecialchars($row['visitor_id']); ?>"><i class="fa fa-trash"></i> Delete</button>
                               </td>
                             </tr>
                           <?php }
                         } else {
-                          echo "<tr><td colspan='9'>No visitor logs found.</td></tr>";
+                          echo "<tr><td colspan='15'>No visitor logs found.</td></tr>";
                         }
                         $stmt->close();
                       } catch (Exception $e) {
-                        echo "<tr><td colspan='9'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
+                        echo "<tr><td colspan='15'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
                       }
                     ?>
                   </tbody>
@@ -146,10 +268,10 @@ $(document).ready(function(){
   }
 
   $('#example1').DataTable({
-    "order": [[5, "desc"]], // Sort by Last Visit Time
+    "order": [[10, "desc"]], // Sort by Last Visit Time (adjusted column index)
     "columnDefs": [
-      { "orderable": true, "targets": [0, 1, 3, 5, 6, 7] }, // Sortable: Visitor ID, IP Address, Browser, Last Visit, Visit Count, User ID
-      { "orderable": false, "targets": [2, 4, 8] } // Non-sortable: Location, User Agent, Actions
+      { "orderable": true, "targets": [0, 1, 3, 4, 5, 6, 7, 8, 10, 11, 12] }, // Sortable: Visitor ID, IP Address, Browser, OS, Device Type, Device Brand, Device Model, Engine, Last Visit, Visit Count, User ID
+      { "orderable": false, "targets": [2, 9, 13, 14] } // Non-sortable: Location, User Agent, Is Bot, Actions
     ],
     "pageLength": 25
   });
@@ -171,7 +293,7 @@ $(document).ready(function(){
   width: 100%;
 }
 .table-responsive table {
-  min-width: 900px;
+  min-width: 1200px; /* Increased to accommodate new columns */
 }
 .box-body p {
   font-weight: bold;
@@ -179,4 +301,4 @@ $(document).ready(function(){
 }
 </style>
 </body>
-    </html>
+</html>
