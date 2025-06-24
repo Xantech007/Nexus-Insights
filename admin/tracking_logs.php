@@ -187,7 +187,6 @@ function parseUserAgent($userAgent) {
                     <th>Device Brand</th>
                     <th>Device Model</th>
                     <th>Browser Engine</th>
-                    <th>User Agent</th>
                     <th>Last Visit</th>
                     <th>Visit Count</th>
                     <th>User ID</th>
@@ -231,7 +230,6 @@ function parseUserAgent($userAgent) {
                               <td><?php echo htmlspecialchars($uaInfo['device_brand']); ?></td>
                               <td><?php echo htmlspecialchars($uaInfo['device_model']); ?></td>
                               <td><?php echo htmlspecialchars($uaInfo['engine']); ?></td>
-                              <td><?php echo htmlspecialchars(substr($row['user_agent'] ?? 'N/A', 0, 50)); ?>...</td>
                               <td><?php echo date('M d, Y H:i', strtotime($row['visit_time'])); ?></td>
                               <td><?php echo $row['visit_count']; ?></td>
                               <td><?php echo $row['user_id'] ? '<a href="view.php?i_id='.urlencode($row['user_id']).'">'.htmlspecialchars($row['user_id']).'</a>' : 'Guest'; ?></td>
@@ -241,11 +239,11 @@ function parseUserAgent($userAgent) {
                             </tr>
                           <?php }
                         } else {
-                          echo "<tr><td colspan='14'>No visitor logs found.</td></tr>";
+                          echo "<tr><td colspan='13'>No visitor logs found.</td></tr>";
                         }
                         $stmt->close();
                       } catch (Exception $e) {
-                        echo "<tr><td colspan='14'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
+                        echo "<tr><td colspan='13'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
                       }
                     ?>
                   </tbody>
@@ -270,10 +268,10 @@ $(document).ready(function(){
   }
 
   $('#example1').DataTable({
-    "order": [[10, "desc"]], // Sort by Last Visit Time
+    "order": [[9, "desc"]], // Sort by Last Visit Time (adjusted for removed column)
     "columnDefs": [
-      { "orderable": true, "targets": [0, 1, 3, 4, 5, 6, 7, 8, 10, 11, 12] }, // Sortable: Visitor ID, IP Address, Browser, OS, Device Type, Device Brand, Device Model, Engine, Last Visit, Visit Count, User ID
-      { "orderable": false, "targets": [2, 9, 13] } // Non-sortable: Location, User Agent, Actions
+      { "orderable": true, "targets": [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11] }, // Sortable: Visitor ID, IP Address, Browser, OS, Device Type, Device Brand, Device Model, Engine, Last Visit, Visit Count, User ID
+      { "orderable": false, "targets": [2, 12] } // Non-sortable: Location, Actions
     ],
     "pageLength": 25
   });
@@ -295,7 +293,7 @@ $(document).ready(function(){
   width: 100%;
 }
 .table-responsive table {
-  min-width: 1200px; /* Adjusted for new columns */
+  min-width: 1100px; /* Adjusted for fewer columns */
 }
 .box-body p {
   font-weight: bold;
