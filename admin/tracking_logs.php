@@ -13,15 +13,8 @@ function getBrowser($userAgent) {
             return "$browser $version";
         }
     }
-    return 'Unknown';
-}
-?>
-
-    foreach ($browsers as $browser => $pattern) {
-        if (preg_match("/$pattern/", $userAgent, $match)) {
-            return "$browser " . $match[1];
-        }
-    }
+    // Log unknown user agents for review
+    file_put_contents('logs/unknown_useragents.log', $userAgent . "\n", FILE_APPEND);
     return 'Unknown';
 }
 ?>
@@ -186,4 +179,4 @@ $(document).ready(function(){
 }
 </style>
 </body>
-</html>
+    </html>
