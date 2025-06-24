@@ -187,7 +187,6 @@ function parseUserAgent($userAgent) {
                     <th>Device Brand</th>
                     <th>Device Model</th>
                     <th>Browser Engine</th>
-                    <th>User Agent</th>
                     <th>Last Visit</th>
                     <th>Visit Count</th>
                     <th>User ID</th>
