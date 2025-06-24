@@ -110,6 +110,14 @@ $brands = [
     'ZTE' => 'ZTE',
     'Alcatel' => 'Alcatel',
     'Microsoft' => 'Lumia|Surface',
-    'Realme' => 'Realme|REALME'
+    'Realme' => 'Realme|REALME',
+    'Infinix' => 'Infinix',
+    'Tecno' => 'Tecno|TECNO',
+    'Poco' => 'Poco|POCO',
+    'Honor' => 'Honor|HONOR',
+    'Meizu' => 'Meizu',
+    'Vodafone' => 'Vodafone',
+    'Fairphone' => 'Fairphone',
+    'Generic' => '[A-Za-z0-9\-]+' // Fallback for unrecognized models like 'K'
 ];
 ?>
