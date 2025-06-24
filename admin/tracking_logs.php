@@ -18,49 +18,6 @@ function parseUserAgent($userAgent) {
         'is_bot' => false
     ];
 
-    // OS patterns
-    $oses = [
-        'Windows' => 'Windows NT ([0-9.]+)',
-        'macOS' => 'Mac OS X ([0-9_\.]+)',
-        'Linux' => 'Linux',
-        'Ubuntu' => 'Ubuntu',
-        'Android' => 'Android ([0-9.]+)',
-        'iOS' => '(?:iPhone OS|CPU OS) ([0-9_\.]+)'
-    ];
-
-    // Device type patterns
-    $devices = [
-        'Mobile' => 'Mobile|Android|iPhone|iPod',
-        'Tablet' => 'iPad|Kindle|Nexus 7|Nexus 9|Nexus 10|Tablet',
-        'Desktop' => 'Windows NT|Mac OS X|Linux|X11'
-    ];
-
-    // Browser engine patterns
-    $engines = [
-        'Blink' => 'Chrome|Edg|OPR|SamsungBrowser|UCBrowser|Brave|Vivaldi',
-        'WebKit' => 'Safari|Version',
-        'Gecko' => 'Firefox|PaleMoon|Waterfox|SeaMonkey|Iceweasel|IceCat',
-        'Trident' => 'MSIE|Trident'
-    ];
-
-    // Bot patterns
-    $bots = [
-        'Googlebot' => 'Googlebot',
-        'Bingbot' => 'Bingbot',
-        'Slurp' => 'Yahoo! Slurp',
-        'DuckDuckBot' => 'DuckDuckBot',
-        'Baiduspider' => 'Baiduspider'
-    ];
-
-    // Device brand/model patterns
-    $brands = [
-        'Apple' => 'iPhone|iPad|iPod',
-        'Samsung' => 'SAMSUNG|Galaxy',
-        'Huawei' => 'Huawei',
-        'Xiaomi' => 'Xiaomi|Redmi',
-        'Amazon' => 'Kindle|Fire'
-    ];
-
     // Detect browser
     foreach ($browsers as $browser => $pattern) {
         if (preg_match("/$pattern/i", $userAgent, $match)) {
@@ -104,23 +61,23 @@ function parseUserAgent($userAgent) {
         }
     }
 
-    // Detect device brand
+    // Detect device brand and model
     foreach ($brands as $brand => $pattern) {
         if (preg_match("/$pattern/i", $userAgent)) {
             $result['device_brand'] = $brand;
-            if (preg_match("/($pattern\s+[\w\-\s\/]+)/i", $userAgent, $modelMatch)) {
-                $result['device_model'] = trim($modelMatch[1]) ?? 'Unknown';
+            if (preg_match("/($pattern\s*[\w\-\s\/]+)/i", $userAgent, $modelMatch)) {
+                $result['device_model'] = trim(str_replace($pattern, '', $modelMatch[1])) ?? 'Unknown';
             }
             break;
         }
     }
 
     // Log unknown user agents for review
-    if ($result['browser'] === 'Unknown') {
+    if ($result['browser'] === 'Unknown' && !$result['is_bot']) {
         if (!file_exists('logs')) {
             mkdir('logs', 0755, true);
         }
-        file_put_contents('logs/unknown_useragents.log', $userAgent . "\n", FILE_APPEND);
+        file_put_contents('logs/unknown_useragents.log', date('Y-m-d H:i:s') . " - " . $userAgent . "\n", FILE_APPEND);
     }
 
     return $result;
@@ -206,7 +163,7 @@ function parseUserAgent($userAgent) {
                             GROUP BY visitor_id
                           ) latest
                           ON v.visitor_id = latest.visitor_id AND v.visit_time = latest.max_visit_time
-                          GROUP BY v.visitor_id -- Ensure unique visitor_id
+                          GROUP BY v.visitor_id
                           ORDER BY v.visit_time DESC
                         ");
                         $stmt->execute();
@@ -268,10 +225,10 @@ $(document).ready(function(){
   }
 
   $('#example1').DataTable({
-    "order": [[9, "desc"]], // Sort by Last Visit Time (adjusted for removed column)
+    "order": [[9, "desc"]], // Sort by Last Visit Time
     "columnDefs": [
-      { "orderable": true, "targets": [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11] }, // Sortable: Visitor ID, IP Address, Browser, OS, Device Type, Device Brand, Device Model, Engine, Last Visit, Visit Count, User ID
-      { "orderable": false, "targets": [2, 12] } // Non-sortable: Location, Actions
+      { "orderable": true, "targets": [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+      { "orderable": false, "targets": [2, 12] }
     ],
     "pageLength": 25
   });
@@ -293,7 +250,7 @@ $(document).ready(function(){
   width: 100%;
 }
 .table-responsive table {
-  min-width: 1100px; /* Adjusted for fewer columns */
+  min-width: 1100px;
 }
 .box-body p {
   font-weight: bold;
