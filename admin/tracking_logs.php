@@ -187,10 +187,10 @@ function parseUserAgent($userAgent) {
                     <th>Device Brand</th>
                     <th>Device Model</th>
                     <th>Browser Engine</th>
+                    <th>User Agent</th>
                     <th>Last Visit</th>
                     <th>Visit Count</th>
                     <th>User ID</th>
-                    <th>Is Bot</th>
                     <th>Actions</th>
                   </thead>
                   <tbody>
@@ -216,12 +216,16 @@ function parseUserAgent($userAgent) {
                         if ($result->num_rows > 0) {
                           while ($row = $result->fetch_assoc()) {
                             $uaInfo = parseUserAgent($row['user_agent']);
+                            // Skip bots
+                            if ($uaInfo['is_bot']) {
+                                continue;
+                            }
                             ?>
                             <tr>
                               <td><a href="visitor_logs.php?visitor_id=<?php echo urlencode($row['visitor_id']); ?>" title="View details for Visitor ID <?php echo htmlspecialchars($row['visitor_id']); ?>"><?php echo htmlspecialchars(substr($row['visitor_id'], 0, 8)); ?>...</a></td>
                               <td><?php echo htmlspecialchars($row['ip_address']); ?></td>
                               <td><?php echo htmlspecialchars($row['location']); ?></td>
-                              <td><?php echo htmlspecialchars($uaInfo['browser'] . ' ' . $uaInfo['browser_version']); ?></td>
+                              <td><?php echo htmlspecialchars($uaInfo['browser'] . ' ' . $uaInfo['(browser_version']); ?></td>
                               <td><?php echo htmlspecialchars($uaInfo['os'] . ' ' . $uaInfo['os_version']); ?></td>
                               <td><?php echo htmlspecialchars($uaInfo['device_type']); ?></td>
                               <td><?php echo htmlspecialchars($uaInfo['device_brand']); ?></td>
@@ -231,18 +235,17 @@ function parseUserAgent($userAgent) {
                               <td><?php echo date('M d, Y H:i', strtotime($row['visit_time'])); ?></td>
                               <td><?php echo $row['visit_count']; ?></td>
                               <td><?php echo $row['user_id'] ? '<a href="view.php?i_id='.urlencode($row['user_id']).'">'.htmlspecialchars($row['user_id']).'</a>' : 'Guest'; ?></td>
-                              <td><?php echo $uaInfo['is_bot'] ? 'Yes' : 'No'; ?></td>
                               <td>
                                 <button class="btn btn-danger btn-sm delete btn-flat" data-id="<?php echo $row['id']; ?>" data-visitor-id="<?php echo htmlspecialchars($row['visitor_id']); ?>"><i class="fa fa-trash"></i> Delete</button>
                               </td>
                             </tr>
                           <?php }
                         } else {
-                          echo "<tr><td colspan='15'>No visitor logs found.</td></tr>";
+                          echo "<tr><td colspan='14'>No visitor logs found.</td></tr>";
                         }
                         $stmt->close();
                       } catch (Exception $e) {
-                        echo "<tr><td colspan='15'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
+                        echo "<tr><td colspan='14'>Error: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
                       }
                     ?>
                   </tbody>
@@ -267,10 +270,10 @@ $(document).ready(function(){
   }
 
   $('#example1').DataTable({
-    "order": [[10, "desc"]], // Sort by Last Visit Time (adjusted column index)
+    "order": [[10, "desc"]], // Sort by Last Visit Time
     "columnDefs": [
       { "orderable": true, "targets": [0, 1, 3, 4, 5, 6, 7, 8, 10, 11, 12] }, // Sortable: Visitor ID, IP Address, Browser, OS, Device Type, Device Brand, Device Model, Engine, Last Visit, Visit Count, User ID
-      { "orderable": false, "targets": [2, 9, 13, 14] } // Non-sortable: Location, User Agent, Is Bot, Actions
+      { "orderable": false, "targets": [2, 9, 13] } // Non-sortable: Location, User Agent, Actions
     ],
     "pageLength": 25
   });
@@ -292,7 +295,7 @@ $(document).ready(function(){
   width: 100%;
 }
 .table-responsive table {
-  min-width: 1200px; /* Increased to accommodate new columns */
+  min-width: 1200px; /* Adjusted for new columns */
 }
 .box-body p {
   font-weight: bold;
