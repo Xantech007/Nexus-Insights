@@ -225,7 +225,7 @@ function parseUserAgent($userAgent) {
                               <td><a href="visitor_logs.php?visitor_id=<?php echo urlencode($row['visitor_id']); ?>" title="View details for Visitor ID <?php echo htmlspecialchars($row['visitor_id']); ?>"><?php echo htmlspecialchars(substr($row['visitor_id'], 0, 8)); ?>...</a></td>
                               <td><?php echo htmlspecialchars($row['ip_address']); ?></td>
                               <td><?php echo htmlspecialchars($row['location']); ?></td>
-                              <td><?php echo htmlspecialchars($uaInfo['browser'] . ' ' . $uaInfo['(browser_version']); ?></td>
+                              <td><?php echo htmlspecialchars($uaInfo['browser'] . ' ' . $uaInfo['browser_version']); ?></td>
                               <td><?php echo htmlspecialchars($uaInfo['os'] . ' ' . $uaInfo['os_version']); ?></td>
                               <td><?php echo htmlspecialchars($uaInfo['device_type']); ?></td>
                               <td><?php echo htmlspecialchars($uaInfo['device_brand']); ?></td>
