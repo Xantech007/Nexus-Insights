@@ -4,15 +4,18 @@ include '../account/connect.php';
 
 // Function to parse browser from user agent
 function getBrowser($userAgent) {
-    $browsers = [
-        'Edge' => 'Edg\/([0-9.]+)',
-        'Chrome' => 'Chrome\/([0-9.]+)',
-        'Firefox' => 'Firefox\/([0-9.]+)',
-        'Safari' => 'Safari\/([0-9.]+)',
-        'Opera' => 'Opera\/([0-9.]+)',
-        'MSIE' => 'MSIE ([0-9.]+)',
-        'Trident' => 'rv:([0-9.]+)' // For IE 11
-    ];
+    include 'includes/browsers.php'; // Load browser patterns from includes/browsers.php
+
+    foreach ($browsers as $browser => $pattern) {
+        if (preg_match("/$pattern/i", $userAgent, $match)) {
+            // Handle browsers with dual version matches (e.g., Internet Explorer with MSIE or rv:)
+            $version = $match[1] ?? ($match[2] ?? 'Unknown');
+            return "$browser $version";
+        }
+    }
+    return 'Unknown';
+}
+?>
 
     foreach ($browsers as $browser => $pattern) {
         if (preg_match("/$pattern/", $userAgent, $match)) {
