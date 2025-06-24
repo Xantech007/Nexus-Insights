@@ -1,6 +1,12 @@
 <?php
 // includes/browsers.php
-
+/*
+ * File: includes/browsers.php
+ * Purpose: Contains regex patterns for browser detection
+ * Format: 'BrowserName' => 'RegexPattern'
+ * Maintenance: Add new browsers by appending to the $browsers array. Test regex with sample user agents.
+ * Last Updated: 2025-06-24
+ */
 $browsers = [
     'Edge' => 'Edg\/([0-9.]+)', // Microsoft Edge
     'Chrome' => 'Chrome\/([0-9.]+)', // Google Chrome
@@ -40,7 +46,7 @@ $browsers = [
     'Otter' => 'Otter\/([0-9.]+)', // Otter Browser
     'Netsurf' => 'NetSurf\/([0-9.]+)', // NetSurf
     'Arora' => 'Arora\/([0-9.]+)', // Arora (discontinued)
-    ' rekonq' => 'rekonq\/([0-9.]+)', // rekonq (discontinued)
+    'rekonq' => 'rekonq\/([0-9.]+)', // rekonq (discontinued)
     'Iceweasel' => 'Iceweasel\/([0-9.]+)', // Iceweasel (Debian Firefox fork)
     'IceCat' => 'IceCat\/([0-9.]+)', // GNU IceCat
     'Sleipnir' => 'Sleipnir\/([0-9.]+)', // Sleipnir
@@ -60,3 +66,4 @@ $browsers = [
     'PlayStation Browser' => 'PS4\/([0-9.]+)', // PlayStation browser
     'Xbox Browser' => 'Xbox\/([0-9.]+)', // Xbox browser
 ];
+?>
