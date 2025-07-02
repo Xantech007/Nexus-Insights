@@ -1,4 +1,4 @@
-<aside class="aside">
+<div class="left-sidenav">
     <div class="menu-content h-100" data-simplebar>
         <ul class="metismenu left-sidenav-menu">
             <li class="menu-label mt-0">Main</li>
@@ -52,4 +52,4 @@
             <h5 class="mt-3"><?php echo $settings->siteTitle; ?></h5>
         </div>
     </div>
-</aside>
+</div>
