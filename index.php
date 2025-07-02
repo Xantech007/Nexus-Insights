@@ -8,13 +8,8 @@
     $page_title = 'Welcome to the Official Website of '.$settings->siteTitle;
     $page_description = $settings->siteTitle.' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
     include('inc/head.php');
-
-
-   
-
 ?>
 <body>
-
   <!-- scroll-to-top start -->
   <?php include('inc/scroll-to-top.php'); ?>  
   <!-- scroll-to-top end -->
@@ -24,9 +19,9 @@
   <!-- / STAR ANIMATION -->
 
   <div class="page-wrapper">
-    <!-- header-section start  -->
+    <!-- header-section start -->
     <?php include('inc/header.php'); ?>    
-    <!-- header-section end  -->
+    <!-- header-section end -->
 
     <!-- hero start -->
     <section class="hero bg_img" data-background="assets/images/bg/hero.jpg">
@@ -75,7 +70,7 @@
           <div class="col-lg-3 col-sm-6 cureency-item mb-30">
             <div class="cureency-card text-center">
               <h6 class="cureency-card__title text-white">COUNTRIES SUPPORTED</h6>
-              <span class="cureency-card__amount h-font-family font-weight-600 base--color">184</span>
+              <span class="cureency-card__amount hemot-family font-weight-600 base--color">184</span>
             </div><!-- cureency-card end -->
           </div><!-- cureency-item end -->
           <div class="col-lg-3 col-sm-6 cureency-item mb-30">
@@ -93,7 +88,7 @@
         </div>
       </div>
     </div>
-    <!-- cureency section end  -->
+    <!-- cureency section end -->
 
     <!-- about section start -->
     <section class="about-section pt-120 pb-120 bg_img" data-background="assets/images/bg/bg-2.jpg">
@@ -143,8 +138,7 @@
               if ($investment_plan->max_invest >= 100000000) {
                   $max_invest = "Unlimited";
               }else{
-                  $max_invest = "&#36;". number_format($investment_plan->max_invest, 0);
-
+                  $max_invest = "$". number_format($investment_plan->max_invest, 0);
               }
 
               $days = $investment_plan->duration;
@@ -152,16 +146,11 @@
               $total_rate = number_format($investment_plan->rate * $investment_plan->duration, 0);
 
               if ($investment_plan->duration <= 4) {
-                  
                   $duration = $days * 24 ." Hours";
               }else{
                   $duration = $days ." Days";
-
               }
-              
-
-              ?>
-
+          ?>
               <div class="col-xl-3 col-lg-4 col-md-6 mb-30">
                 <div class="package-card text-center bg_img" data-background="assets/images/bg/bg-4.png">
                   <h4 class="package-card__title base--color mb-2"><?= $investment_plan->name; ?></h4>
@@ -171,11 +160,10 @@
                     <li>For <?= $duration; ?></li>
                     <li>Total <?= $total_rate; ?>% + <span class="badge base--bg text-dark">Capital</span></li>
                   </ul>
-                  <div class="package-card__range mt-5 base--color">&#36;<?= number_format($investment_plan->min_invest, 0); ?> - <?= $max_invest; ?></div>
+                  <div class="package-card__range mt-5 base--color">$<?= number_format($investment_plan->min_invest, 0); ?> - <?= $max_invest; ?></div>
                   <a href="account/investments" class="cmn-btn btn-md mt-4">Invest Now</a>
                 </div><!-- package-card end -->
               </div>
-
           <?php
               $index++;
              endforeach; ?>
@@ -187,7 +175,7 @@
         </div>
       </div>
     </section>
-    <!-- package section end  -->
+    <!-- package section end -->
 
     <!-- choose us section start -->
     <section class="pt-120 pb-120 overlay--radial bg_img" data-background="assets/images/bg/bg-3.jpg">
@@ -282,7 +270,7 @@
             <div class="choose-card border-radius--5">
               <div class="choose-card__header mb-3">
                 <div class="choose-card__icon">
-                  <i class="fab fa-expeditedssl"></i>
+                  <i class="fab la-expeditedssl"></i>
                 </div>
                 <h4 class="choose-card__title base--color">SSL Secured</h4>
               </div>
@@ -303,7 +291,7 @@
         </div>
       </div>
     </section>
-    <!-- choose us section end  -->
+    <!-- choose us section end -->
 
     <!-- profit calculator section start -->
     <section class="pt-120 pb-120">
@@ -327,7 +315,6 @@
                       <?php
                         $index = 1;
                         foreach ($investment_plans as $investment_plan) : ?>
-
                         <option value="<?= $investment_plan->rate; ?>"><?= $investment_plan->name; ?></option>
                       <?php
                           $index++;
@@ -345,7 +332,7 @@
                   <div class="col-lg-6 mb-30">
                     <label>Profit Amount</label>
                     <span data-bind="out:price, f:currency" data-name="profit" class="form-control base--bg">
-                        <span class="pr-sign">-&nbsp;</span> $<span class="pr-wrap" style="display: none;"><span class="pr">0</span></span>
+                        <span class="pr-sign">- </span> $<span class="pr-wrap" style="display: none;"><span class="pr">0</span></span>
                     </span>
                   </div>
                 </div>
@@ -364,7 +351,6 @@
           <div class="col-lg-6 text-center">
             <div class="section-header">
               <h2 class="section-title"><span class="font-weight-normal">How</span> <b class="base--color">Nexus Insights</b> <span class="font-weight-normal">Works</span></h2>
-              
             </div>
           </div>
         </div><!-- row end -->
@@ -405,9 +391,8 @@
         </div>
       </div>
     </section>
-    <!-- how work section end  -->
+    <!-- how work section end -->
 
-    
     <!-- faq section start -->
     <section class="pt-120 pb-120" id="faq">
       <div class="container">
@@ -431,7 +416,6 @@
                     </button>
                   </h2>
                 </div>
-            
                 <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
                   <div class="card-body">
                     Deposit and withdrawal are available for at any time. Be sure, that your funds are not used in any ongoing trade before the withdrawal. The available amount is shown in your dashboard on the main page of Investing platform. 
@@ -505,7 +489,6 @@
     </section>
     <!-- faq section end -->
 
-
     <!-- testimonial section start -->
     <section class="pt-120 pb-120 bg_img overlay--radial" data-background="assets/images/bg/bg-7.jpg">
       <div class="container">
@@ -513,7 +496,6 @@
           <div class="col-lg-6 text-center">
             <div class="section-header">
               <h2 class="section-title"><span class="font-weight-normal">What People Say</span> <b class="base--color">About Us</b></h2>
-              
             </div>
           </div>
         </div><!-- row end -->
@@ -623,7 +605,6 @@
     <?php include('inc/team.php') ?>
     <!-- team section end -->
 
-
     <!-- data section start -->
     <section class="pt-120 pb-120">
       <div class="container">
@@ -645,7 +626,6 @@
                 <a class="nav-link" id="withdraw-tab" data-toggle="tab" href="#withdraw" role="tab" aria-controls="withdraw" aria-selected="false">Latest Withdraw</a>
               </li>
             </ul>
-
             <div class="tab-content mt-4" id="transactionTabContent">
               <div class="tab-pane fade show active" id="deposit" role="tabpanel" aria-labelledby="deposit-tab">
                 <div class="table-responsive--sm">
@@ -661,12 +641,8 @@
                     <tbody>
                       <?php
                         if(!empty($deposits)){ ?>
-
                           <?php
-                          foreach ($deposits as $deposit) : 
-
-                          ?>
-
+                          foreach ($deposits as $deposit) : ?>
                           <tr>
                             <td data-label="Name">
                               <div class="user">
@@ -674,14 +650,11 @@
                               </div>
                             </td>
                             <td data-label="Date"><?= $deposit->trans_date; ?></td>
-                            <td data-label="Amount">&#36; <?= number_format($deposit->amount, 2); ?></td>
+                            <td data-label="Amount">$ <?= number_format($deposit->amount, 2); ?></td>
                             <td data-label="Gateway"><?= $deposit->payment_mode; ?></td>
                           </tr>
-
                           <?php
                           endforeach; ?>
-
-
                       <?php }else{
                             echo '
                               <div class="col-lg-4 col-xl-3 col-sm-6">
@@ -711,12 +684,8 @@
                     <tbody>
                       <?php
                         if(!empty($withdrawals)){ ?>
-
                             <?php
-                            foreach ($withdrawals as $withdrawal) : 
-
-                            ?>
-
+                            foreach ($withdrawals as $withdrawal) : ?>
                             <tr>
                               <td data-label="Name">
                                 <div class="user">
@@ -724,14 +693,11 @@
                                 </div>
                               </td>
                               <td data-label="Date"><?= $withdrawal->trans_date; ?></td>
-                              <td data-label="Amount">&#36; <?= number_format($withdrawal->amount, 2); ?></td>
+                              <td data-label="Amount">$ <?= number_format($withdrawal->amount, 2); ?></td>
                               <td data-label="Gateway"><?= $withdrawal->payment_mode; ?></td>
                             </tr>
-
-
                             <?php
                             endforeach; ?>
-
                       <?php }else{
                             echo '
                               <div class="col-lg-4 col-xl-3 col-sm-6">
@@ -754,7 +720,6 @@
     </section>
     <!-- data section end -->
 
-
     <!-- top investor section start -->
     <section class="pt-120 pb-120 border-top-1">
       <div class="container">
@@ -762,14 +727,15 @@
           <div class="col-xl-6 col-lg-8 text-center">
             <div class="section-header">
               <h2 class="section-title"><span class="font-weight-normal">Our Top</span> <b class="base--color">Investor</b></h2>
-              
             </div>
           </div>
         </div><!-- row end -->
         <div class="row justify-content-center mb-none-30">
           <div class="col-xl-3 col-lg-4 col-sm-6 mb-30">
             <div class="investor-card border-radius--5">
-              <div class="investor-card__thumb bg_img background-position-y-top" data-background="assets/images/investor/11.jpg"></div>
+              <div class="investor-card__thumb">
+                <img src="assets/images/investor/11.jpg" alt="Investor Abd Manaf Abbad" class="img-fluid">
+              </div>
               <div class="investor-card__content">
                 <h6 class="name">Abd Manaf Abbad</h6>
                 <span class="amount f-size-14">Investment - $3,500,000</span>
@@ -778,7 +744,9 @@
           </div>
           <div class="col-xl-3 col-lg-4 col-sm-6 mb-30">
             <div class="investor-card border-radius--5">
-              <div class="investor-card__thumb bg_img background-position-y-top" data-background="assets/images/investor/12.jpg"></div>
+              <div class="investor-card__thumb">
+                <img src="assets/images/investor/12.jpg" alt="Investor Francisco João" class="img-fluid">
+              </div>
               <div class="investor-card__content">
                 <h6 class="name">Francisco João</h6>
                 <span class="amount f-size-14">Investment - $3,300,400</span>
@@ -787,7 +755,9 @@
           </div>
           <div class="col-xl-3 col-lg-4 col-sm-6 mb-30">
             <div class="investor-card border-radius--5">
-              <div class="investor-card__thumb bg_img background-position-y-top" data-background="assets/images/investor/13.jpg"></div>
+              <div class="investor-card__thumb">
+                <img src="assets/images/investor/13.jpg" alt="Investor Wang Li Zhang" class="img-fluid">
+              </div>
               <div class="investor-card__content">
                 <h6 class="name">Wang Li Zhang</h6>
                 <span class="amount f-size-14">Investment - $3,000,000</span>
@@ -796,7 +766,9 @@
           </div>
           <div class="col-xl-3 col-lg-4 col-sm-6 mb-30">
             <div class="investor-card border-radius--5">
-              <div class="investor-card__thumb bg_img background-position-y-top" data-background="assets/images/investor/14.jpg"></div>
+              <div class="investor-card__thumb">
+                <img src="assets/images/investor/14.jpg" alt="Investor Jack Noah" class="img-fluid">
+              </div>
               <div class="investor-card__content">
                 <h6 class="name">Jack Noah</h6>
                 <span class="amount f-size-14">Investment - $2,800,600</span>
@@ -805,7 +777,9 @@
           </div>
           <div class="col-xl-3 col-lg-4 col-sm-6 mb-30">
             <div class="investor-card border-radius--5">
-              <div class="investor-card__thumb bg_img background-position-y-top" data-background="assets/images/investor/15.jpg"></div>
+              <div class="investor-card__thumb">
+                <img src="assets/images/investor/15.jpg" alt="Investor Mary Robert" class="img-fluid">
+              </div>
               <div class="investor-card__content">
                 <h6 class="name">Mary Robert</h6>
                 <span class="amount f-size-14">Investment - $1,500,000</span>
@@ -814,7 +788,9 @@
           </div>
           <div class="col-xl-3 col-lg-4 col-sm-6 mb-30">
             <div class="investor-card border-radius--5">
-              <div class="investor-card__thumb bg_img background-position-y-top" data-background="assets/images/investor/16.jpg"></div>
+              <div class="investor-card__thumb">
+                <img src="assets/images/investor/16.jpg" alt="Investor Oliver Ethan" class="img-fluid">
+              </div>
               <div class="investor-card__content">
                 <h6 class="name">Oliver Ethan</h6>
                 <span class="amount f-size-14">Investment - $500,000</span>
@@ -823,7 +799,9 @@
           </div>
           <div class="col-xl-3 col-lg-4 col-sm-6 mb-30">
             <div class="investor-card border-radius--5">
-              <div class="investor-card__thumb bg_img background-position-y-top" data-background="assets/images/investor/17.jpg"></div>
+              <div class="investor-card__thumb">
+                <img src="assets/images/investor/17.jpg" alt="Investor Zhang Liu Chen" class="img-fluid">
+              </div>
               <div class="investor-card__content">
                 <h6 class="name">Zhang Liu Chen</h6>
                 <span class="amount f-size-14">Investment - $1,700,450</span>
@@ -832,7 +810,9 @@
           </div>
           <div class="col-xl-3 col-lg-4 col-sm-6 mb-30">
             <div class="investor-card border-radius--5">
-              <div class="investor-card__thumb bg_img background-position-y-top" data-background="assets/images/investor/18.jpg"></div>
+              <div class="investor-card__thumb">
+                <img src="assets/images/investor/18.jpg" alt="Investor Yang Huang" class="img-fluid">
+              </div>
               <div class="investor-card__content">
                 <h6 class="name">Yang Huang</h6>
                 <span class="amount f-size-14">Investment - $850,350</span>
@@ -843,7 +823,6 @@
       </div>
     </section>
     <!-- top investor section end -->
-
 
     <!-- cta section start -->
     <section class="pb-120">
@@ -907,7 +886,6 @@
     </section>
     <!-- payment brand section end -->
 
-    
     <!-- blog section start -->
     <section class="pt-120 pb-120 border-top-1">
       <div class="container">
@@ -923,11 +901,9 @@
           <?php
             $index = 1;
               foreach ($news as $new) : 
-
                 if ($index == 1) {
                   $tag1 = "Crypto News";
                   $tag2 = "Apps";
-                  
                 }elseif ($index == 2) {
                   $tag1 = "Cryptocurrency";
                   $tag2 = "Tech";
@@ -935,7 +911,7 @@
                   $tag1 = "Bitcoin";
                   $tag2 = "Tech";
                 }
-                  ?>
+          ?>
                 <div class="col-lg-4 col-md-6 mb-30">
                   <div class="blog-card">
                     <div class="blog-card__thumb">
@@ -989,13 +965,10 @@
     </section>
     <!-- subscribe section end -->
 
-
     <!-- footer section start -->
     <?php include('inc/footer.php') ?>
     <!-- footer section end -->
   </div> <!-- page-wrapper end -->
   <?php include('inc/scripts.php') ?>
-  </body>
-
-<!-- Mirrored from template.viserlab.com/hyiplab/demo/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 16 Oct 2021 16:37:40 GMT -->
+</body>
 </html>
