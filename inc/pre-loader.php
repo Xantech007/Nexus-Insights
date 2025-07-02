@@ -4,6 +4,18 @@
   </div>
 </div>
 
+<style>
+  .preloader {
+    background-color: black; /* Sets black background */
+    position: fixed; /* Ensures it covers the screen */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999; /* Keeps preloader on top */
+  }
+</style>
+
 <script>
   window.addEventListener('load', () => {
     setTimeout(() => {
