@@ -1,3 +1,6 @@
+<?php
+include('pre-loader.php');
+?>
 <div class="left-sidenav">
     <div class="menu-content h-100" data-simplebar>
         <ul class="metismenu left-sidenav-menu">
