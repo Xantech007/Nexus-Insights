@@ -1,10 +1,7 @@
 <!-- Preloader -->
-<div id="preloader">
-    <div class="preloader-inner">
-        <div class="spinner"></div>
-    </div>
-</div>
-
+<?php
+include ('pre-loader.php');
+?>
 <header class="header">
     <div class="header__bottom">
         <div class="container">
