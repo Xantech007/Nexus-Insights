@@ -3,7 +3,6 @@
 // Ensure $settings, $conn, and $id are available (loaded via config.php or session.php)
 if (!isset($settings)) {
     include('../inc/config.php');
-    include('../../inc/pre-loader.php');
 }
 if (!isset($id)) {
     $id = $_SESSION['user'] ?? 0; // Fallback to 0 if user not logged in
