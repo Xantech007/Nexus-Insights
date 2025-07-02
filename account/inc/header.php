@@ -1,5 +1,5 @@
 <?php
-include('../inc/pre-loader.php');
+include('../../inc/pre-loader.php');
 // inc/header.php
 // Ensure $settings, $conn, and $id are available (loaded via config.php or session.php)
 if (!isset($settings)) {
