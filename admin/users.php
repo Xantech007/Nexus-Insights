@@ -1,227 +1,144 @@
-<?php include 'includes/session.php'; ?>
-<?php include 'includes/header.php'; ?>
-<body class="hold-transition skin-blue sidebar-mini">
-<div class="wrapper">
+<?php
+include('init.php');
+include 'admin/session.php';
 
-  <?php include 'includes/navbar.php'; ?>
-  <?php include 'includes/menubar.php'; ?>
-
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <h1>Users</h1>
-      <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class="active">Users</li>
-      </ol>
-    </section>
-
-    <!-- Main content -->
-    <section class="content">
-      <?php
-        if (isset($_SESSION['error'])) {
-          echo "
-            <div class='alert alert-danger alert-dismissible'>
-              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>
-              <h4><i class='icon fa fa-warning'></i> Error!</h4>
-              " . $_SESSION['error'] . "
-            </div>
-          ";
-          unset($_SESSION['error']);
-        }
-        if (isset($_SESSION['success'])) {
-          echo "
-            <div class='alert alert-success alert-dismissible'>
-              <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>×</button>
-              <h4><i class='icon fa fa-check'></i> Success!</h4>
-              " . $_SESSION['success'] . "
-            </div>
-          ";
-          unset($_SESSION['success']);
-        }
-      ?>
-      <div class="row">
-        <div class="col-xs-12">
-          <div class="box">
-            <div class="box-header with-border">
-              <a href="#addnew" data-toggle="modal" class="btn btn-primary btn-sm btn-flat"><i class="fa fa-plus"></i> New</a>
-              <a href="#msg_all" data-toggle="modal" class="btn btn-primary btn-sm btn-flat"><i class="fa fa-envelope"></i> Message all Users</a>
-            </div>
-            <div class="box-body">
-              <p><i class="fa fa-eye"></i> Click on the user's email to view details about the user</p>
-              <div class="table-responsive">
-                <table id="example1" class="table table-bordered">
-                  <thead>
-                    <th>User ID</th>
-                    <th>Photo</th>
-                    <th>Email</th>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Date Added</th>
-                    <th>Tools</th>
-                  </thead>
-                  <tbody>
-                    <?php
-                      $conn = $pdo->open();
-                      try {
-                        $stmt = $conn->prepare("SELECT * FROM users WHERE type = :type");
-                        $stmt->execute(['type' => 0]);
-                        foreach ($stmt as $row) {
-                          $image = (!empty($row['photo'])) ? 'images/' . $row['photo'] : 'images/profile.jpg';
-                          $status = ($row['status']) ? '<span class="label label-success">active</span>' : '<span class="label label-danger">not verified</span>';
-                          $active = (!$row['status']) ? '<span class="pull-right"><a href="#activate" class="status" data-toggle="modal" data-id="' . $row['id'] . '"><i class="fa fa-check-square-o"></i></a></span>' : '';
-                          echo "
-                            <tr>
-                              <td>" . $row['id'] . "</td>
-                              <td>
-                                <img src='" . $image . "' height='30px' width='30px'>
-                                <span class='pull-right'><a href='#edit_photo' class='photo' data-toggle='modal' data-id='" . $row['id'] . "'><i class='fa fa-edit'></i></a></span>
-                              </td>
-                              <td><a href='view.php?i_id=" . $row['id'] . "'>" . $row['email'] . "</a></td>
-                              <td>" . $row['full_name'] . "</td>
-                              <td>
-                                " . $status . "
-                                " . $active . "
-                              </td>
-                              <td>" . date('M d, Y', strtotime($row['created_on'])) . "</td>
-                              <td>
-                                <button class='btn btn-primary btn-sm msg btn-flat' data-id='" . $row['id'] . "'><i class='fa fa-envelope'></i> DM</button>
-                                <button class='btn btn-success btn-sm fund btn-flat' data-id='" . $row['id'] . "'><i class='fa fa-money'></i> Fund</button>
-                                <button class='btn btn-warning btn-sm withdraw btn-flat' data-id='" . $row['id'] . "'><i class='fa fa-minus-circle'></i> Withdraw</button>
-                                <button class='btn btn-info btn-sm edit btn-flat' data-id='" . $row['id'] . "'><i class='fa fa-edit'></i> Edit</button>
-                                <button class='btn btn-danger btn-sm delete btn-flat' data-id='" . $row['id'] . "'><i class='fa fa-trash'></i> Delete</button>
-                              </td>
-                            </tr>
-                          ";
-                        }
-                      } catch (PDOException $e) {
-                        echo $e->getMessage();
-                      }
-                      $pdo->close();
-                    ?>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-  <?php include 'includes/footer.php'; ?>
-  <?php include 'includes/users_modal.php'; ?>
-
-  <!-- Withdraw Modal -->
-  <div class="modal fade" id="withdraw">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">×</span>
-          </button>
-          <h4 class="modal-title"><b>Withdraw Amount for <span class="fullname"></span></b></h4>
-        </div>
-        <div class="modal-body">
-          <form class="form-horizontal" method="POST" action="users_withdraw.php" id="withdraw_form">
-            <input type="hidden" class="userid" name="id">
-            <div class="form-group">
-              <label for="withdraw_amount" class="col-sm-3 control-label">Amount</label>
-              <div class="col-sm-9">
-                <input type="number" class="form-control" id="withdraw_amount" name="amount" required min="0" step="0.01">
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
-          <button type="submit" class="btn btn-warning btn-flat" name="withdraw" form="withdraw_form"><i class="fa fa-minus-circle"></i> Withdraw</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- ./wrapper -->
-
-<?php include 'includes/scripts.php'; ?>
-<script>
-$(function(){
-  $(document).on('click', '.edit', function(e){
-    e.preventDefault();
-    $('#edit').modal('show');
-    var id = $(this).data('id');
-    getRow(id);
-  });
-
-  $(document).on('click', '.delete', function(e){
-    e.preventDefault();
-    $('#delete').modal('show');
-    var id = $(this).data('id');
-    getRow(id);
-  });
-
-  $(document).on('click', '.fund', function(e){
-    e.preventDefault();
-    $('#fund').modal('show');
-    var id = $(this).data('id');
-    getRow(id);
-  });
-
-  $(document).on('click', '.msg', function(e){
-    e.preventDefault();
-    $('#msg').modal('show');
-    var id = $(this).data('id');
-    getRow(id);
-  });
-
-  $(document).on('click', '.photo', function(e){
-    e.preventDefault();
-    var id = $(this).data('id');
-    getRow(id);
-  });
-
-  $(document).on('click', '.status', function(e){
-    e.preventDefault();
-    var id = $(this).data('id');
-    getRow(id);
-  });
-
-  $(document).on('click', '.withdraw', function(e){
-    e.preventDefault();
-    $('#withdraw').modal('show');
-    var id = $(this).data('id');
-    getRow(id);
-  });
-
-  function getRow(id){
-    $.ajax({
-      type: 'POST',
-      url: 'users_row.php',
-      data: {id: id},
-      dataType: 'json',
-      success: function(response){
-        $('.userid').val(response.id);
-        $('#edit_email').val(response.email);
-        $('#edit_password').val(response.password);
-        $('#edit_full_name').val(response.full_name);
-        $('#edit_uname').val(response.uname);
-        $('#edit_nationality').val(response.nationality);
-        $('#edit_phone_no').val(response.phone_no);
-        $('.fullname').html(response.full_name);
-      }
-    });
-  }
-});
-</script>
-<style>
-.table-responsive {
-  overflow-x: auto;
-  width: 100%;
+if (isset($_SESSION['user'])) {
+    header('location: account/dashboard.php');
 }
 
-.table-responsive table {
-  min-width: 900px; /* Adjust based on your table's content width */
+$page_name = 'Account Activation';
+$page_parent = '';
+$page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
+$page_description = $settings->siteTitle . ' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
+include('inc/head.php');
+
+$output = '';
+if (!isset($_GET['code']) || !isset($_GET['user'])) {
+    $output .= '
+        <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
+        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Code to activate account not found. Please <a href="register.php">Register</a></p>
+    ';
+} else {
+    $conn = $pdo->open();
+
+    $stmt = $conn->prepare("SELECT *, COUNT(*) AS numrows FROM users WHERE activate_code=:code AND id=:id");
+    $stmt->execute(['code' => $_GET['code'], 'id' => $_GET['user']]);
+    $row = $stmt->fetch();
+
+    if ($row['numrows'] > 0) {
+        if ($row['status']) {
+            $output .= '
+                <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
+                <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Account already activated. Please <a href="login.php">Login</a></p>
+            ';
+        } else {
+            try {
+                $id = $_GET['user'];
+                $now = date('Y-m-d g:i A');
+
+                // Fetch the amount and description from the registration table where id = 1
+                $stmt = $conn->prepare("SELECT amount, description FROM registration WHERE id = 1");
+                $stmt->execute();
+                $registration = $stmt->fetch();
+
+                if ($registration) {
+                    $bonus_amount = $registration['amount'];
+                    $bonus_description = $registration['description'];
+
+                    // Insert transaction with dynamic amount and description using prepared statement
+                    $stmt = $conn->prepare("INSERT INTO transaction (user_id, date, type, amount, description, balance) VALUES (:user_id, :date, :type, :amount, :description, :balance)");
+                    $stmt->execute([
+                        'user_id' => $id,
+                        'date' => $now,
+                        'type' => 1,
+                        'amount' => $bonus_amount,
+                        'description' => $bonus_description,
+                        'balance' => $bonus_amount
+                    ]);
+
+                    // Update user status
+                    $stmt = $conn->prepare("UPDATE users SET status=:status WHERE id=:id");
+                    $stmt->execute(['status' => 1, 'id' => $row['id']]);
+
+                    $output .= '
+                        <h1 class="font-size-sl-72 font-weight-light mb-3">Success!</h1>
+                        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Account activated - Email: <b>' . $row['email'] . '</b>. You may <a href="login.php">Login</a></p>
+                    ';
+                } else {
+                    $output .= '
+                        <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
+                        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Registration bonus details not found. Please contact support or <a href="register.php">Register</a></p>
+                    ';
+                }
+            } catch (PDOException $e) {
+                $output .= '
+                    <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
+                    <p class="text-gray-90 font-size-20 mb-0 font-weight-light">' . $e->getMessage() . ' Please <a href="register.php">signup</a></p>
+                ';
+            }
+        }
+    } else {
+        $output .= '
+            <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
+            <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Cannot activate account. Wrong code. Please <a href="register.php">signup</a></p>
+        ';
+    }
+
+    $pdo->close();
 }
-</style>
+?>
+
+<body>
+    <!--========== Preloader ==========-->
+    <!-- Preloader code omitted for brevity -->
+    <!--========== Preloader ==========-->
+
+    <!-- scroll-to-top start -->
+    <?php include('inc/scroll-to-top.php'); ?>
+    <!-- scroll-to-top end -->
+
+    <!-- STAR ANIMATION -->
+    <?php include('inc/star-animation.php'); ?>
+    <!-- / STAR ANIMATION -->
+
+    <div class="page-wrapper">
+        <!-- header-section start -->
+        <?php include('inc/header.php'); ?>
+        <!-- header-section end -->
+
+        <!-- inner hero start -->
+        <section class="inner-hero bg_img" data-background="assets/images/bg/bg-1.jpg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h2 class="page-title">Account Activation</h2>
+                        <ul class="page-breadcrumb">
+                            <li><a href="<?= $baseurl ?>">Home</a></li>
+                            <li>Account Activation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- inner hero end -->
+
+        <!-- contact section start -->
+        <section class="pt-50 pb-120">
+            <div class="container pt-120">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 mb-50">
+                        <h2 class="font-weight-bold"><?php echo $output; ?></h2>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- contact section end -->
+
+        <!-- footer section start -->
+        <?php include('inc/footer.php') ?>
+        <!-- footer section end -->
+    </div> <!-- page-wrapper end -->
+    <?php include('inc/scripts.php') ?>
 </body>
+
 </html>
