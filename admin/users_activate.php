@@ -33,8 +33,8 @@ if (isset($_POST['activate'])) {
             $stmt2 = $conn->prepare("INSERT INTO activity (act_id, user_id, message, category, date_sent) VALUES (NULL, :user_id, :message, :category, :date_sent)");
             $stmt2->execute([
                 'user_id' => $id,
-                'message' => "Received Registration Bonus of $bonus_amount",
-                'category' => 'Deposit',
+                'message' => "$bonus_description ($$bonus_amount)",
+                'category' => 'Info',
                 'date_sent' => $now
             ]);
 
