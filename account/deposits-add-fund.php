@@ -18,6 +18,19 @@
 
     $conn = $pdo->open();
 
+    // Fetch deposit limits from the limits table
+    try {
+        $stmt = $conn->prepare("SELECT min_deposit, max_deposit FROM limits WHERE id = :id");
+        $stmt->execute(['id' => 1]); // Assuming single row with id=1
+        $limits = $stmt->fetch(PDO::FETCH_OBJ);
+        $min_deposit = $limits ? $limits->min_deposit : 100; // Fallback to 100 if query fails
+        $max_deposit = $limits ? $limits->max_deposit : 100000; // Fallback to 100000 if query fails
+    } catch (PDOException $e) {
+        $min_deposit = 100; // Fallback value
+        $max_deposit = 100000; // Fallback value
+        $_SESSION['error'] = 'Error fetching deposit limits: ' . $e->getMessage();
+    }
+
     $deposit_madeQuery = $conn->query("SELECT * FROM request WHERE user_id=$id AND type=1 ORDER BY user_id DESC");
     if ($deposit_madeQuery->rowCount()) {
         $deposit_made = $deposit_madeQuery->fetchAll(PDO::FETCH_OBJ);
@@ -34,6 +47,8 @@
     }
 
     $depositHistory = "SELECT * FROM transaction WHERE user_id = :id AND type = 1";
+
+    $pdo->close();
 ?>
 
 <body>
@@ -122,12 +137,12 @@
                                                 <label>Deposit Charge: 0%</label>
                                             </div><!--end form-group-->
                                             <div class="form-group mb-2">
-                                                <label>Deposit Limit: ($100 - $100,000)</label>
+                                                <label>Deposit Limit: ($<?php echo number_format($min_deposit, 2); ?> - $<?php echo number_format($max_deposit, 2); ?>)</label>
                                             </div><!--end form-group-->
                                             <div class="form-group mb-2">
                                                 <div class="input-group mb-3">
                                                     <div class="input-group-prepend"><span class="input-group-text">$</span></div>
-                                                    <input type="number" name="deposit_amount" class="form-control" id="deposit-amount" placeholder="Enter Deposit Amount" aria-label="Amount (to the nearest dollar)" min="100" max="100000" step="0.01" required />
+                                                    <input type="number" name="deposit_amount" class="form-control" id="deposit-amount" placeholder="Enter Deposit Amount" aria-label="Amount (to the nearest dollar)" min="<?php echo $min_deposit; ?>" max="<?php echo $max_deposit; ?>" step="0.01" required />
                                                     <div class="input-group-append"></div>
                                                 </div>
                                                 <div id="deposit-error" class="invalid-feedback" style="display: none;"></div>
@@ -157,6 +172,8 @@
         $(document).ready(function() {
             var $depositInput = $('#deposit-amount');
             var $error = $('#deposit-error');
+            var minDeposit = <?php echo json_encode($min_deposit); ?>;
+            var maxDeposit = <?php echo json_encode($max_deposit); ?>;
 
             // Function to validate the deposit amount
             function validateAmount(value) {
@@ -169,13 +186,13 @@
                     $depositInput.addClass('is-invalid');
                     return false;
                 }
-                if (amount < 100) {
-                    $error.text('Deposit amount must be at least $100.').show();
+                if (amount < minDeposit) {
+                    $error.text('Deposit amount must be at least $' + minDeposit.toFixed(2) + '.').show();
                     $depositInput.addClass('is-invalid');
                     return false;
                 }
-                if (amount > 100000) {
-                    $error.text('Deposit amount cannot exceed $100,000.').show();
+                if (amount > maxDeposit) {
+                    $error.text('Deposit amount cannot exceed $' + maxDeposit.toFixed(2) + '.').show();
                     $depositInput.addClass('is-invalid');
                     return false;
                 }
