@@ -12,10 +12,10 @@ $page_description = $settings->siteTitle . ' provides quality infrastructure bac
 include('inc/head.php');
 
 $output = '';
-if (!isset($_GET['code']) || !isset($_GET['user'])) {
+if (!isset($_GET['code']) || !isset($_GET['user']) || !is_numeric($_GET['user'])) {
     $output .= '
         <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Code to activate account not found. Please <a href="register.php">Register</a></p>
+        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Invalid activation link. Please <a href="register.php">Register</a></p>
     ';
 } else {
     $conn = $pdo->open();
@@ -70,9 +70,10 @@ if (!isset($_GET['code']) || !isset($_GET['user'])) {
                     ';
                 }
             } catch (PDOException $e) {
+                error_log($e->getMessage(), 3, 'errors.log');
                 $output .= '
                     <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-                    <p class="text-gray-90 font-size-20 mb-0 font-weight-light">' . $e->getMessage() . ' Please <a href="register.php">signup</a></p>
+                    <p class="text-gray-90 font-size-20 mb-0 font-weight-light">An error occurred. Please contact support or <a href="register.php">signup</a></p>
                 ';
             }
         }
