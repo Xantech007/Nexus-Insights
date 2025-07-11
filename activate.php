@@ -60,7 +60,7 @@ if (!isset($_GET['code']) || !isset($_GET['user'])) {
                     $sql5 = "INSERT INTO activity (act_id, user_id, message, category, date_sent) VALUES (
                                 NULL,
                                 '$id',
-                                '$bonus_description ($bonus_amount)',
+                                '$bonus_description ($$bonus_amount)',
                                 'Info',
                                 '$now'
                             )";
