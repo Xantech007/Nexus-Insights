@@ -61,7 +61,7 @@ if (!isset($_GET['code']) || !isset($_GET['user'])) {
                                 NULL,
                                 '$id',
                                 '$bonus_description ($bonus_amount)',
-                                'Deposit',
+                                'Info',
                                 '$now'
                             )";
                     $conn->query($sql5);
