@@ -38,9 +38,23 @@ try {
     exit();
 }
 
-// Set dynamic min and max based on balance
-$min_amount = $balance < 100 ? $balance : 100;
-$max_amount = $balance > 100000 ? 100000 : $balance;
+// Fetch withdrawal limits from the limits table
+try {
+    $stmt = $conn->prepare("SELECT min_withdraw, max_withdraw FROM limits WHERE id = :id");
+    $stmt->execute(['id' => 1]); // Assuming single row with id=1
+    $limits = $stmt->fetch(PDO::FETCH_OBJ);
+    $min_withdraw = $limits ? floatval($limits->min_withdraw) : 100; // Fallback to 100 if query fails
+    $max_withdraw = $limits ? floatval($limits->max_withdraw) : 100000; // Fallback to 100000 if query fails
+} catch (PDOException $e) {
+    $min_withdraw = 100; // Fallback value
+    $max_withdraw = 100000; // Fallback value
+    $_SESSION['error'] = 'Error fetching withdrawal limits: ' . $e->getMessage();
+    error_log($e->getMessage(), 3, '/home/vol19_2/infinityfree.com/if0_39045086/htdocs/logs/error.log');
+}
+
+// Adjust min and max withdrawal based on balance
+$min_amount = $balance < $min_withdraw ? $balance : $min_withdraw;
+$max_amount = $balance < $max_withdraw ? $balance : $max_withdraw;
 
 // Fetch withdrawal requests using request_id
 try {
@@ -92,6 +106,7 @@ try {
     error_log($e->getMessage(), 3, '/home/vol19_2/infinityfree.com/if0_39045086/htdocs/logs/error.log');
 }
 
+$pdo->close();
 ?>
 
 <body class="dark-topbar">
