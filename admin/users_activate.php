@@ -10,38 +10,39 @@ if (isset($_POST['activate'])) {
         $now = date('Y-m-d g:i A');
 
         // Fetch the amount and description from the registration table where id = 1
-        $stmt = $conn->prepare("SELECT amount, description FROM registration WHERE id = :id");
-        $stmt->execute(['id' => 1]);
-        $registration = $stmt->fetch();
+        $sql = "SELECT amount, description FROM registration WHERE id = 1";
+        $result = $conn->query($sql);
+        $registration = $result->fetch();
 
         if ($registration) {
             $bonus_amount = $registration['amount'];
             $bonus_description = $registration['description'];
 
             // Insert transaction with dynamic amount and description
-            $stmt1 = $conn->prepare("INSERT INTO transaction (id, user_id, date, type, amount, description, balance) VALUES (NULL, :user_id, :date, :type, :amount, :description, :balance)");
-            $stmt1->execute([
-                'user_id' => $id,
-                'date' => $now,
-                'type' => 1,
-                'amount' => $bonus_amount,
-                'description' => $bonus_description,
-                'balance' => $bonus_amount
-            ]);
+            $sql1 = "INSERT INTO transaction VALUES(
+                        NULL,
+                        '$id',
+                        '$now',
+                        '1',
+                        '$bonus_amount',
+                        '$bonus_description',
+                        '$bonus_amount'
+                    )";
+            $conn->query($sql1);
 
             // Insert into activity table
-            $stmt2 = $conn->prepare("INSERT INTO activity (act_id, user_id, message, category, date_sent) VALUES (NULL, :user_id, :message, :category, :date_sent)");
-            $stmt2->execute([
-                'user_id' => $id,
-                'message' => "$bonus_description ($$bonus_amount)",
-                'category' => 'Info',
-                'date_sent' => $now
-            ]);
+            $sql2 = "INSERT INTO activity (act_id, user_id, message, category, date_sent) VALUES (
+                        NULL,
+                        '$id',
+                        '$bonus_description ($$bonus_amount)',
+                        'Info',
+                        '$now'
+                    )";
+            $conn->query($sql2);
 
             // Update user status
-            $stmt3 = $conn->prepare("UPDATE users SET status = :status WHERE id = :id");
-            $stmt3->execute(['status' => 1, 'id' => $id]);
-
+            $stmt = $conn->prepare("UPDATE users SET status=:status WHERE id=:id");
+            $stmt->execute(['status' => 1, 'id' => $id]);
             $_SESSION['success'] = 'User activated successfully';
         } else {
             $_SESSION['error'] = 'Registration bonus details not found';
