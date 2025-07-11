@@ -20,18 +20,18 @@ if (!isset($_GET['code']) || !isset($_GET['user']) || !is_numeric($_GET['user'])
 } else {
     $conn = $pdo->open();
 
-    $stmt = $conn->prepare("SELECT *, COUNT(*) AS numrows FROM users WHERE activate_code=:code AND id=:id");
-    $stmt->execute(['code' => $_GET['code'], 'id' => $_GET['user']]);
-    $row = $stmt->fetch();
+    try {
+        $stmt = $conn->prepare("SELECT *, COUNT(*) AS numrows FROM users WHERE activate_code=:code AND id=:id");
+        $stmt->execute(['code' => $_GET['code'], 'id' => $_GET['user']]);
+        $row = $stmt->fetch();
 
-    if ($row['numrows'] > 0) {
-        if ($row['status']) {
-            $output .= '
-                <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-                <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Account already activated. Please <a href="login.php">Login</a></p>
-            ';
-        } else {
-            try {
+        if ($row['numrows'] > 0) {
+            if ($row['status']) {
+                $output .= '
+                    <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
+                    <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Account already activated. Please <a href="login.php">Login</a></p>
+                ';
+            } else {
                 $id = $_GET['user'];
                 $now = date('Y-m-d g:i A');
 
@@ -43,6 +43,9 @@ if (!isset($_GET['code']) || !isset($_GET['user']) || !is_numeric($_GET['user'])
                 if ($registration) {
                     $bonus_amount = $registration['amount'];
                     $bonus_description = $registration['description'];
+
+                    // Log the fetched values for debugging
+                    error_log("Fetched registration bonus: amount=$bonus_amount, description=$bonus_description", 3, 'errors.log');
 
                     // Insert transaction with dynamic amount and description using prepared statement
                     $stmt = $conn->prepare("INSERT INTO transaction (user_id, date, type, amount, description, balance) VALUES (:user_id, :date, :type, :amount, :description, :balance)");
@@ -64,23 +67,24 @@ if (!isset($_GET['code']) || !isset($_GET['user']) || !is_numeric($_GET['user'])
                         <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Account activated - Email: <b>' . $row['email'] . '</b>. You may <a href="login.php">Login</a></p>
                     ';
                 } else {
+                    error_log("No registration record found for id=1", 3, 'errors.log');
                     $output .= '
                         <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
                         <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Registration bonus details not found. Please contact support or <a href="register.php">Register</a></p>
                     ';
                 }
-            } catch (PDOException $e) {
-                error_log($e->getMessage(), 3, 'errors.log');
-                $output .= '
-                    <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-                    <p class="text-gray-90 font-size-20 mb-0 font-weight-light">An error occurred. Please contact support or <a href="register.php">signup</a></p>
-                ';
             }
+        } else {
+            $output .= '
+                <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
+                <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Cannot activate account. Wrong code. Please <a href="register.php">signup</a></p>
+            ';
         }
-    } else {
+    } catch (PDOException $e) {
+        error_log("PDO Error in activate.php: " . $e->getMessage(), 3, 'errors.log');
         $output .= '
             <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-            <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Cannot activate account. Wrong code. Please <a href="register.php">signup</a></p>
+            <p class="text-gray-90 font-size-20 mb-0 font-weight-light">An error occurred: ' . htmlspecialchars($e->getMessage()) . '. Please contact support or <a href="register.php">signup</a></p>
         ';
     }
 
