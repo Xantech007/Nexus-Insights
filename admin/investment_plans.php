@@ -49,6 +49,7 @@
           <div class="box">
             <div class="box-header with-border">
               <a href="#addnew" data-toggle="modal" class="btn btn-primary btn-sm btn-flat"><i class="fa fa-plus"></i> New</a>
+              <a href="#editLimits" data-toggle="modal" class="btn btn-primary btn-sm btn-flat edit-limits"><i class="fa fa-edit"></i> Deposit and Withdrawal Limits</a>
             </div>
             <div class="box-body">
               <div class="table-responsive">
@@ -103,6 +104,7 @@
   <?php include 'includes/footer.php'; ?>
   <?php include 'includes/investment_plans_modal.php'; ?>
   <?php include 'includes/investment_plans_modal2.php'; ?>
+  <?php include 'includes/limits_modal.php'; ?>
 
 </div>
 <!-- ./wrapper -->
@@ -136,7 +138,12 @@ $(function(){
     getRow(id);
   });
 
-  
+  $(document).on('click', '.edit-limits', function(e){
+    e.preventDefault();
+    $('#editLimits').modal('show');
+    getLimits();
+  });
+
   $('#addreview').click(function(e){
     e.preventDefault();
     getCategory();
@@ -151,25 +158,39 @@ $(function(){
       $('.append_items').remove();
   });
 
-});
+  function getRow(id){
+    $.ajax({
+      type: 'POST',
+      url: 'investment_plans_row.php',
+      data: {id:id},
+      dataType: 'json',
+      success: function(response){
+        $('.name').html(response.ipname);
+        $('.ipid').val(response.ipid);
+        $('#edit_name').val(response.ipname);
+        $('#edit_duration').val(response.duration);
+        $('#edit_rate').val(response.rate);
+        $('#edit_min_invest').val(response.min_invest);
+        $('#edit_max_invest').val(response.max_invest);
+      }
+    });
+  }
 
-function getRow(id){
-  $.ajax({
-    type: 'POST',
-    url: 'investment_plans_row.php',
-    data: {id:id},
-    dataType: 'json',
-    success: function(response){
-      $('.name').html(response.ipname);
-      $('.ipid').val(response.ipid);
-      $('#edit_name').val(response.ipname);
-      $('#edit_duration').val(response.duration);
-      $('#edit_rate').val(response.rate);
-      $('#edit_min_invest').val(response.min_invest);
-      $('#edit_max_invest').val(response.max_invest);
-    }
-  });
-}
+  function getLimits(){
+    $.ajax({
+      type: 'POST',
+      url: 'limits_row.php',
+      data: {id: 1}, // Assuming single row with id=1
+      dataType: 'json',
+      success: function(response){
+        $('#edit_min_deposit').val(response.min_deposit);
+        $('#edit_max_deposit').val(response.max_deposit);
+        $('#edit_min_withdraw').val(response.min_withdraw);
+        $('#edit_max_withdraw').val(response.max_withdraw);
+      }
+    });
+  }
+});
 </script>
 <style>
 .table-responsive {
