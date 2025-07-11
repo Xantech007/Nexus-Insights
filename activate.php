@@ -12,75 +12,88 @@ $page_description = $settings->siteTitle . ' provides quality infrastructure bac
 include('inc/head.php');
 
 $output = '';
-if (!isset($_GET['code']) || !isset($_GET['user'])) {
+if (!isset($_GET['code']) || !isset($_GET['user']) || !is_numeric($_GET['user'])) {
     $output .= '
         <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Code to activate account not found. Please <a href="register.php">Register</a></p>
+        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Invalid activation link. Please <a href="register.php">Register</a></p>
     ';
 } else {
     $conn = $pdo->open();
 
-    $stmt = $conn->prepare("SELECT *, COUNT(*) AS numrows FROM users WHERE activate_code=:code AND id=:id");
-    $stmt->execute(['code' => $_GET['code'], 'id' => $_GET['user']]);
-    $row = $stmt->fetch();
+    try {
+        $stmt = $conn->prepare("SELECT *, COUNT(*) AS numrows FROM users WHERE activate_code=:code AND id=:id");
+        $stmt->execute(['code' => $_GET['code'], 'id' => $_GET['user']]);
+        $row = $stmt->fetch();
 
-    if ($row['numrows'] > 0) {
-        if ($row['status']) {
-            $output .= '
-                <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-                <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Account already activated. Please <a href="login.php">Login</a></p>
-            ';
-        } else {
-            try {
+        if ($row['numrows'] > 0) {
+            if ($row['status']) {
+                $output .= '
+                    <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
+                    <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Account already activated. Please <a href="login.php">Login</a></p>
+                ';
+            } else {
                 $id = $_GET['user'];
                 $now = date('Y-m-d g:i A');
 
                 // Fetch the amount and description from the registration table where id = 1
-                $sql = "SELECT amount, description FROM registration WHERE id = 1";
-                $result = $conn->query($sql);
-                $registration = $result->fetch();
+                $stmt = $conn->prepare("SELECT amount, description FROM registration WHERE id = 1");
+                $stmt->execute();
+                $registration = $stmt->fetch();
 
                 if ($registration) {
                     $bonus_amount = $registration['amount'];
                     $bonus_description = $registration['description'];
-
-                    // Insert transaction with dynamic amount and description
-                    $sql4 = "INSERT INTO transaction VALUES(
-                                NULL,
-                                '$id',
-                                '$now',
-                                '1',
-                                '$bonus_amount',
-                                '$bonus_description',
-                                '$bonus_amount'
-                            )";
-                    $conn->query($sql4);
-
-                    // Update user status
-                    $stmt = $conn->prepare("UPDATE users SET status=:status WHERE id=:id");
-                    $stmt->execute(['status' => 1, 'id' => $row['id']]);
-
-                    $output .= '
-                        <h1 class="font-size-sl-72 font-weight-light mb-3">Success!</h1>
-                        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Account activated - Email: <b>' . $row['email'] . '</b>. You may <a href="login.php">Login</a></p>
-                    ';
                 } else {
-                    $output .= '
-                        <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-                        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Registration bonus details not found. Please contact support or <a href="register.php">Register</a></p>
-                    ';
+                    // Fallback values
+                    $bonus_amount = 50.00;
+                    $bonus_description = 'Welcome Bonus';
+                    error_log("No registration record found for id=1, using fallback values", 3, 'errors.log');
                 }
-            } catch (PDOException $e) {
+
+                // Log the values for debugging
+                error_log("Using bonus: amount=$bonus_amount, description=$bonus_description", 3, 'errors.log');
+
+                // Insert transaction with dynamic amount and description
+                $stmt = $conn->prepare("INSERT INTO transaction (user_id, date, type, amount, description, balance) VALUES (:user_id, :date, :type, :amount, :description, :balance)");
+                $stmt->execute([
+                    'user_id' => $id,
+                    'date' => $now,
+                    'type' => 1,
+                    'amount' => $bonus_amount,
+                    'description' => $bonus_description,
+                    'balance' => $bonus_amount
+                ]);
+
+                // Insert into activity table
+                $activity_message = "Received registration bonus of $" . number_format($bonus_amount, 2) . ": " . $bonus_description;
+                $stmt = $conn->prepare("INSERT INTO activity (user_id, message, category, date_sent) VALUES (:user_id, :message, :category, :date_sent)");
+                $stmt->execute([
+                    'user_id' => $id,
+                    'message' => $activity_message,
+                    'category' => 'Bonus',
+                    'date_sent' => $now
+                ]);
+
+                // Update user status
+                $stmt = $conn->prepare("UPDATE users SET status=:status WHERE id=:id");
+                $stmt->execute(['status' => 1, 'id' => $row['id']]);
+
                 $output .= '
-                    <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-                    <p class="text-gray-90 font-size-20 mb-0 font-weight-light">' . $e->getMessage() . ' Please <a href="register.php">signup</a></p>
+                    <h1 class="font-size-sl-72 font-weight-light mb-3">Success!</h1>
+                    <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Account activated - Email: <b>' . $row['email'] . '</b>. You may <a href="login.php">Login</a></p>
                 ';
             }
+        } else {
+            $output .= '
+                <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
+                <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Cannot activate account. Wrong code. Please <a href="register.php">signup</a></p>
+            ';
         }
-    } else {
+    } catch (PDOException $e) {
+        error_log("PDO Error in activate.php: " . $e->getMessage(), 3, 'errors.log');
         $output .= '
             <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-            <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Cannot activate account. Wrong code. Please <a href="register.php">signup</a></p>
+            <p class="text-gray-90 font-size-20 mb-0 font-weight-light">An error occurred. Please contact support or <a href="register.php">signup</a></p>
         ';
     }
 
