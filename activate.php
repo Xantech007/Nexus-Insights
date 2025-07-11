@@ -35,9 +35,9 @@ if (!isset($_GET['code']) || !isset($_GET['user'])) {
                 $id = $_GET['user'];
                 $now = date('Y-m-d g:i A');
 
-                // Fetch the amount and description from the registration table
-                $stmt = $conn->prepare("SELECT amount, description FROM registration WHERE id=:id");
-                $stmt->execute(['id' => $id]);
+                // Fetch the amount and description from the registration table where id = 1
+                $stmt = $conn->prepare("SELECT amount, description FROM registration WHERE id = 1");
+                $stmt->execute();
                 $registration = $stmt->fetch();
 
                 if ($registration) {
@@ -66,7 +66,7 @@ if (!isset($_GET['code']) || !isset($_GET['user'])) {
                 } else {
                     $output .= '
                         <h1 class="font-size-sl-72 font-weight-light mb-3">Error!</h1>
-                        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Registration details not found. Please <a href="register.php">Register</a></p>
+                        <p class="text-gray-90 font-size-20 mb-0 font-weight-light">Registration bonus details not found. Please contact support or <a href="register.php">Register</a></p>
                     ';
                 }
             } catch (PDOException $e) {
