@@ -1,5 +1,4 @@
 # Nexus Insights
-#An Investment Website Like HYIP
 
 ----Create Database----
 #Create a new mysql database
