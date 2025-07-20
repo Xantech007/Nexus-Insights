@@ -101,7 +101,7 @@ if (isset($_POST['signup'])) {
                                                                             <strong>Dear {$full_name} ({$username}),</strong>
                                                                         </span>
                                                                     </p>
-                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'>&nbsp;</p>
+                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
                                                                     <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'>
                                                                         <span style='color: #000000;'>
                                                                             Thank you for registering with us. Your new account is being provisioned and can be accessed once activated.
@@ -113,7 +113,7 @@ if (isset($_POST['signup'])) {
                                                                             <a style='display: inline-block; padding: 10px 20px; background-color: #d60000; color: #ffffff; text-decoration: none; border-radius: 20px;' href='https://{$sweet_url}/activate.php?code={$code}&user={$userid}'>Activate Account</a>
                                                                         </span>
                                                                     </p>
-                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'>&nbsp;</p>
+                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
                                                                     <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'>
                                                                         <span style='color: #000000;'>
                                                                             Do note that Nexus Insights will not give you any other wallet address apart from the one shown on the website.
@@ -135,7 +135,7 @@ if (isset($_POST['signup'])) {
                                 </td>
                             </tr>
                             <tr>
-                                <td>&nbsp;</td>
+                                <td> </td>
                             </tr>
                         </tbody>
                     </table>
@@ -217,11 +217,13 @@ HTML;
             unset($_SESSION['username']);
             unset($_SESSION['email']);
 
-            $_SESSION['success'] = 'Account created. Check your email to activate.;
+            // Updated success message
+            $_SESSION['success'] = 'Account created. Check your email to activate.';
             header('location: register.php');
             exit();
         } catch (Exception $e) {
-            $_SESSION['success'] = 'Account has been set up and will be activated shortly. An email will be sent to you with your login details. To continue to navigate site, <a href="index.php">Click Here</a>';
+            // Updated success message
+            $_SESSION['success'] = 'Account created. Check your email to activate.';
             header('location: register.php');
             exit();
         }
