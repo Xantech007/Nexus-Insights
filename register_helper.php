@@ -217,7 +217,7 @@ HTML;
             unset($_SESSION['username']);
             unset($_SESSION['email']);
 
-            $_SESSION['success'] = 'Account created. Check your email to activate. To continue to navigate site, <a href="index.php">Click Here</a>';
+            $_SESSION['success'] = 'Account created. Check your email to activate.;
             header('location: register.php');
             exit();
         } catch (Exception $e) {
