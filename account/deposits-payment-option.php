@@ -128,7 +128,7 @@ $id = $_SESSION['user'];
                                         <input type="number" name="deposit_amount" value="<?php echo $deposit_amount; ?>" hidden>
                 
                                         <div class="form-group mb-2">
-                                            <label>We only accept Bitcoin as the only mode of payment for now. All other payment methods are currently down. Please bear with us. We will let you know once the full payment options are back online.</label>
+                                            <label>We only accept Crypto as our mode of payment for now. Select your desired mode of payment from the options below and proceed.</label>
                                                                       
                                         </div><!--end form-group--> 
                 
