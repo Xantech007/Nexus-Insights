@@ -36,12 +36,12 @@ $sweet_url = 'nexusinsights.it.com';
 
 // SMTP configuration settings
 $smtpConfig = [
-    'host' => $sweet_url, // nexusinsights.it.com
-    'port' => 465,        // From screenshot (SMTP Port)
-    'username' => 'info@nexusinsights.it.com', // From screenshot
-    'password' => 'D73vsYeqpv54Gsu',       // Placeholder, replace with actual password
-    'secure' => 'ssl',    // From screenshot (SSL/TLS recommended)
-    'fromEmail' => 'info@nexusinsights.it.com', // Must match username
+    'host' => 'smtp.gmail.com', // nexusinsights.it.com
+    'port' => 587,        // From screenshot (SMTP Port)
+    'username' => 'info.nexusinsights.itcom@gmail.com', // From screenshot
+    'password' => 'Binance007',       // Placeholder, replace with actual password
+    'secure' => 'tls',    // From screenshot (SSL/TLS recommended)
+    'fromEmail' => 'info.nexusinsights.itcom@gmail.com', // Must match username
     'fromName' => 'Nexus Insights'             // Matches siteTitle
 ];
 
@@ -53,7 +53,7 @@ $settings = (object) array(
     'siteTagline' => 'Invest With Precision',
     'phoneNumber' => 'Wa.me/+447438783028',
     'address' => '17 Willow Lane, Bristol, BS1 4XY, United Kingdom',
-    'email' => 'info@nexusinsights.it.com',
+    'email' => 'info.nexusinsights.itcom@gmail.com',
     'email2' => 'support@nexusinsights.it.com',
     'email3' => '',
     'instagram' => '',
