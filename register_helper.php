@@ -26,12 +26,25 @@ if (isset($_POST['signup'])) {
 
     $conn = $pdo->open();
 
+    // Check if email is already taken
     $stmt = $conn->prepare("SELECT COUNT(*) AS numrows FROM users WHERE email=:email");
     $stmt->execute(['email' => $email]);
     $row = $stmt->fetch();
 
     if ($row['numrows'] > 0) {
         $_SESSION['error'] = 'Email already taken';
+        header('location: register.php');
+        $pdo->close();
+        exit;
+    }
+
+    // Check if username is already taken
+    $stmt = $conn->prepare("SELECT COUNT(*) AS numrows FROM users WHERE uname=:username");
+    $stmt->execute(['username' => $username]);
+    $row = $stmt->fetch();
+
+    if ($row['numrows'] > 0) {
+        $_SESSION['error'] = 'Username already taken';
         header('location: register.php');
         $pdo->close();
         exit;
@@ -101,7 +114,7 @@ if (isset($_POST['signup'])) {
                                                                             <strong>Dear {$full_name} ({$username}),</strong>
                                                                         </span>
                                                                     </p>
-                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
+                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
                                                                     <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'>
                                                                         <span style='color: #000000;'>
                                                                             Thank you for registering with us. Your new account is being provisioned and can be accessed once activated.
@@ -113,7 +126,7 @@ if (isset($_POST['signup'])) {
                                                                             <a style='display: inline-block; padding: 10px 20px; background-color: #d60000; color: #ffffff; text-decoration: none; border-radius: 20px;' href='https://{$sweet_url}/activate.php?code={$code}&user={$userid}'>Activate Account</a>
                                                                         </span>
                                                                     </p>
-                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
+                                                                    <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'> </p>
                                                                     <p style='font-size: 13px; line-height: 20px; color: #666666; margin: 0px; text-align: left;' align='center'>
                                                                         <span style='color: #000000;'>
                                                                             Do note that Nexus Insights will not give you any other wallet address apart from the one shown on the website.
@@ -135,7 +148,7 @@ if (isset($_POST['signup'])) {
                                 </td>
                             </tr>
                             <tr>
-                                <td> </td>
+                                <td> </td>
                             </tr>
                         </tbody>
                     </table>
@@ -217,18 +230,20 @@ HTML;
             unset($_SESSION['username']);
             unset($_SESSION['email']);
 
-            // Updated success message
             $_SESSION['success'] = 'Account created. Check your email to activate.';
             header('location: register.php');
             exit();
         } catch (Exception $e) {
-            // Updated success message
             $_SESSION['success'] = 'Account created. Check your email to activate.';
             header('location: register.php');
             exit();
         }
     } catch (PDOException $e) {
-        $_SESSION['success'] = $e->getMessage();
+        if (strpos($e->getMessage(), 'unique_username') !== false) {
+            $_SESSION['error'] = 'Username already taken';
+        } else {
+            $_SESSION['error'] = 'An error occurred during registration. Please try again.';
+        }
         header('location: register.php');
         exit();
     } finally {
