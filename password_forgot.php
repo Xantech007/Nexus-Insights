@@ -26,6 +26,7 @@
   <!-- / STAR ANIMATION -->
 
   <div class="page-wrapper">
+  <?php include('inc/header.php') ?>
 
     <!-- account section start -->
     <div class="account-section bg_img" data-background="assets/images/bg/bg-5.jpg">
@@ -80,7 +81,7 @@
       </div>
     </div>
     <!-- account section end -->
-
+  <?php include('inc/footer.php') ?>
   </div> <!-- page-wrapper end -->
   <?php include('inc/scripts.php') ?>
   </body>
