@@ -27,8 +27,6 @@
 </head>
 
 <?php
-
-
 $conn = $pdo->open();
 
 $newQuery = $conn->query("SELECT * from news order by 1 desc limit 3");
@@ -61,27 +59,30 @@ if ($blockchaintxQuery->rowCount()) {
    $blockchaintxs = $blockchaintxQuery->fetchAll(PDO::FETCH_OBJ);
 }
 
-function substrwords($text, $maxchar, $end='...') {
-   if (strlen($text) > $maxchar || $text == '') {
-       $words = preg_split('/\s/', $text);      
-       $output = '';
-       $i      = 0;
-       while (1) {
-           $length = strlen($output)+strlen($words[$i]);
-           if ($length > $maxchar) {
-               break;
-           } 
-           else {
-               $output .= " " . $words[$i];
-               ++$i;
-           }
-       }
-       $output .= $end;
-   } 
-   else {
-       $output = $text;
-   }
-   return $output;
+if (!function_exists('substrwords')) {
+    function substrwords($text, $maxchar, $end='...') {
+        if (strlen($text) > $maxchar || $text == '') {
+            $words = preg_split('/\s/', $text);      
+            $output = '';
+            $i      = 0;
+            while (1) {
+                $length = strlen($output) + strlen($words[$i]);
+                if ($length > $maxchar) {
+                    break;
+                } 
+                else {
+                    $output .= " " . $words[$i];
+                    ++$i;
+                }
+            }
+            $output .= $end;
+        } 
+        else {
+            $output = $text;
+        }
+        return $output;
+    }
 }
 
+$pdo->close();
 ?>
