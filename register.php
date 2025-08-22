@@ -9,7 +9,7 @@ $page_name = 'Register';
 $page_parent = 'Account';
 $page_title = 'Welcome to the Official Website of ' . $settings->siteTitle;
 $page_description = $settings->siteTitle . ' provides quality infrastructure backed high-performance cloud computing services for cryptocurrency mining. Choose a plan to get started today! What are you waiting for? Together We Grow!...';
-include('inc/head.php');
+include_once('inc/head.php');
 
 if (isset($_GET["referral"]) && !empty(trim($_GET["referral"]))) {
     $referral = $_GET["referral"];
