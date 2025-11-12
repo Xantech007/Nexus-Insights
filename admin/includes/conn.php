@@ -1,7 +1,7 @@
 <?php
 class Database {
-    private $server = "mysql:host=localhost;dbname=nexuvmvy_nexusinsights";
-    private $username = "nexuvmvy_nexusinsights";
+    private $server = "mysql:host=localhost;dbname=nexuvmvy_db";
+    private $username = "nexuvmvy_db";
     private $password = "Xander24427279";
     private $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
