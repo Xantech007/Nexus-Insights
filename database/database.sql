@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jun 09, 2025 at 06:50 PM
--- Server version: 10.6.21-MariaDB-cll-lve-log
--- PHP Version: 8.3.21
+-- Generation Time: Nov 14, 2025 at 01:52 AM
+-- Server version: 11.4.8-MariaDB-cll-lve-log
+-- PHP Version: 8.3.27
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `nexuvmvy_nexusinsights`
+-- Database: `nexuymmv_db`
 --
 
 -- --------------------------------------------------------
@@ -152,6 +152,21 @@ CREATE TABLE `investment_plans` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `limits`
+--
+
+CREATE TABLE `limits` (
+  `id` int(11) NOT NULL,
+  `min_deposit` decimal(15,2) DEFAULT 10.00,
+  `max_deposit` decimal(15,2) DEFAULT 100000.00,
+  `min_withdraw` decimal(15,2) DEFAULT 5.00,
+  `max_withdraw` decimal(15,2) DEFAULT 50000.00,
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `news`
 --
 
@@ -178,6 +193,19 @@ CREATE TABLE `payment_methods` (
   `wallet_address` varchar(255) NOT NULL,
   `details` text NOT NULL,
   `photo` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `registration`
+--
+
+CREATE TABLE `registration` (
+  `id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `description` varchar(255) NOT NULL DEFAULT 'Registration Bonus',
+  `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -314,6 +342,12 @@ ALTER TABLE `investment_plans`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `limits`
+--
+ALTER TABLE `limits`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `news`
 --
 ALTER TABLE `news`
@@ -323,6 +357,12 @@ ALTER TABLE `news`
 -- Indexes for table `payment_methods`
 --
 ALTER TABLE `payment_methods`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `registration`
+--
+ALTER TABLE `registration`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -411,6 +451,12 @@ ALTER TABLE `investment_plans`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `limits`
+--
+ALTER TABLE `limits`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `news`
 --
 ALTER TABLE `news`
@@ -420,6 +466,12 @@ ALTER TABLE `news`
 -- AUTO_INCREMENT for table `payment_methods`
 --
 ALTER TABLE `payment_methods`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `registration`
+--
+ALTER TABLE `registration`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
