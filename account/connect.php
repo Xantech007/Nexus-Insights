@@ -1,10 +1,10 @@
 <?php
 $servername = "localhost";
 // Enter your MySQL username below(default=root)
-$username = "nexuvmvy_nexusinsights";
+$username = "nexuymmv_db";
 // Enter your MySQL password below
 $password = "Xander24427279";
-$dbname = "nexuvmvy_nexusinsights";
+$dbname = "nexuymmv_db";
 
 // Create connection
 $conne = new mysqli($servername, $username, $password, $dbname);
