@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 14, 2025 at 01:52 AM
+-- Generation Time: Nov 19, 2025 at 08:52 AM
 -- Server version: 11.4.8-MariaDB-cll-lve-log
 -- PHP Version: 8.3.27
 
@@ -167,6 +167,22 @@ CREATE TABLE `limits` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `live_chat`
+--
+
+CREATE TABLE `live_chat` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT 0,
+  `guest_id` varchar(32) NOT NULL,
+  `sender` enum('user','admin') NOT NULL DEFAULT 'user',
+  `message` text NOT NULL,
+  `date_sent` datetime DEFAULT current_timestamp(),
+  `status` tinyint(4) DEFAULT 0
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `news`
 --
 
@@ -276,12 +292,14 @@ CREATE TABLE `users` (
 
 CREATE TABLE `visitor_logs` (
   `id` int(11) NOT NULL,
+  `visitor_id` varchar(32) NOT NULL,
   `page_name` varchar(255) NOT NULL,
-  `visit_time` datetime NOT NULL,
-  `location` varchar(255) DEFAULT NULL,
+  `visit_time` datetime NOT NULL DEFAULT current_timestamp(),
+  `location` varchar(255) DEFAULT 'Location not available',
   `ip_address` varchar(45) NOT NULL,
-  `user_id` int(11) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+  `user_id` int(11) DEFAULT NULL,
+  `user_agent` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -348,6 +366,14 @@ ALTER TABLE `limits`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `live_chat`
+--
+ALTER TABLE `live_chat`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `guest_id` (`guest_id`),
+  ADD KEY `date_sent` (`date_sent`);
+
+--
 -- Indexes for table `news`
 --
 ALTER TABLE `news`
@@ -390,7 +416,10 @@ ALTER TABLE `users`
 --
 ALTER TABLE `visitor_logs`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `idx_visitor_id` (`visitor_id`),
+  ADD KEY `idx_visit_time` (`visit_time` DESC),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_ip` (`ip_address`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -454,6 +483,12 @@ ALTER TABLE `investment_plans`
 -- AUTO_INCREMENT for table `limits`
 --
 ALTER TABLE `limits`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `live_chat`
+--
+ALTER TABLE `live_chat`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
